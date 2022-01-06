@@ -91,9 +91,7 @@ class Application(tk.Tk):
         self.insert_book_list_items()
 
     def add_book(self):
-        add_book_dialog = AddBookDialog(self)
-        self.wait_window(add_book_dialog)
-        self.on_startup_populate_book_list()
+        AddBookDialog(self)
 
     def open_right_click_menu(self, event):
         selected_item_id = self.book_list.identify_row(event.y)

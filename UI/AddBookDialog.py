@@ -59,6 +59,7 @@ class AddBookDialog(tk.Toplevel):
 
                     insert_result = BookController.add_book(isbn, title, author, pages)
                     if insert_result is None:
+                        self.master.event_generate("<<BookUpdate>>")
                         self.destroy()
                     else:
                         msg_box.showerror("Error while inserting book", insert_result)
