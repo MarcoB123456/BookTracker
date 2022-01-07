@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def get_connection():
     logger.debug("Opening database connection")
-    return sqlite3.connect("test.db")
+    return sqlite3.connect("BookTracker.db")
 
 
 def get_all_books():
