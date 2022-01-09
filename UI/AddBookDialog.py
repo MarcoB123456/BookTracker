@@ -30,6 +30,7 @@ class AddBookDialog(tk.Toplevel):
         self.list_combobox_option = tk.StringVar()
         self.list_combobox_option.set("None")
 
+        # TODO: Replace with ttk.Combobox
         self.list_combobox = tk.OptionMenu(self, self.list_combobox_option, *self.lists)
         self.list_combobox.place(relx=0.1, rely=0.7, relheight=0.2, relwidth=0.4)
 

@@ -7,7 +7,7 @@ from Controllers import BookController, ListController
 logger = logging.getLogger(__name__)
 
 
-class RightClickMenu(tk.Menu):
+class BookRightClickMenu(tk.Menu):
     def __init__(self, parent, event, item, lists):
         super().__init__(parent, tearoff=0)
         self.item = item

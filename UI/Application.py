@@ -1,9 +1,13 @@
 import tkinter as tk
+import ast
 from tkinter import ttk
 
 from Controllers import BookController, ListController
+from Models.Filter import Filter
 from UI.AddBookDialog import AddBookDialog
-from UI.RightClickMenu import RightClickMenu
+from UI.BookRightClickMenu import BookRightClickMenu
+from UI.ListFrame import ListFrame
+from UI.SearchFrame import SearchFrame
 
 
 class Application(tk.Tk):
@@ -15,22 +19,25 @@ class Application(tk.Tk):
         self.geometry("1000x500")
 
         # Custom event's
-        self.bind("<<BookUpdate>>", self.on_startup_populate_book_list)
+        self.bind("<<BookUpdate>>", self.find_all_books_with_filter)
+        self.bind("<<ListUpdate>>", self.update_lists)
 
         # Variables
         self.books = []
+        self.find_all_books()
+
         self.lists = ["None"]
+        self.find_all_lists()
 
         # Build list filter
-        self.list_label = tk.Label(self, text="List", anchor=tk.W, font="Helvetica 14 bold")
-        self.list_label.place(relx=0.01, rely=0.03, relwidth=0.2, relheight=0.05)
+        self.left_frame = tk.Frame(self)
+        self.left_frame.place(relx=0, rely=0, relwidth=0.2, relheight=0.8)
 
-        self.list_combobox_selected = tk.StringVar()
-        self.list_combobox = ttk.Combobox(self)
-        self.on_startup_populate_list_combobox()
-        self.list_combobox.bind('<<ComboboxSelected>>', self.list_filter_changed)
-        self.list_combobox.set('None')
-        self.list_combobox.place(relx=0.01, rely=0.08, relwidth=0.18, relheight=0.07)
+        self.list_frame = ListFrame(self.left_frame, self.lists)
+        self.list_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+        self.search_frame = SearchFrame(self.left_frame, self.lists)
+        self.search_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
         # Build book list
         book_list_columns = ('ISBN', 'Title', 'Author', 'Pages', 'Rating')
@@ -48,22 +55,35 @@ class Application(tk.Tk):
                                                                                             False))
 
         # Create right click menu
-        self.book_list.bind("<Button-3>", self.open_right_click_menu)
-
-        self.on_startup_populate_book_list()
+        self.book_list.bind("<Button-3>", self.open_book_right_click_menu)
 
         self.book_list.place(relx=0.2, rely=0, relheight=1, relwidth=0.8)
+        self.populate_book_list()
+
+        # Switch frames buttons
+        self.search_frame_button = tk.Button(self, text="Search", command=self.search_frame.show)
+        self.search_frame_button.place(relx=0, rely=0.9, relheight=0.1, relwidth=0.1)
+
+        self.list_frame_button = tk.Button(self, text="List", command=self.list_frame.show)
+        self.list_frame_button.place(relx=0.1, rely=0.9, relheight=0.1, relwidth=0.1)
 
         # Build add button
-        self.add_book_button = tk.Button(self, text="+", font="Helvetica 20 bold", command=self.add_book)
-        self.add_book_button.place(relx=0.1, rely=0.8, relheight=0.07, relwidth=0.07)
+        self.add_book_button = tk.Button(self, text="+", font="Helvetica 20 bold", command=self.open_add_book_dialog)
+        self.add_book_button.place(relx=0.2, rely=0.93, relheight=0.07, relwidth=0.07)
         self.mainloop()
 
-    def on_startup_populate_book_list(self, event=None):
+    def find_all_books(self):
         self.books = BookController.get_all_books()
-        self.insert_book_list_items()
 
-    def insert_book_list_items(self):
+    def find_all_books_with_filter(self, event=None):
+        if event is None:
+            self.books = BookController.get_all_books()
+        else:
+            book_filter = Filter(self.search_frame.list_combobox.get())
+            self.books = BookController.get_books_by_filter(book_filter)
+        self.populate_book_list()
+
+    def populate_book_list(self):
         self.book_list.delete(*self.book_list.get_children())
         for book in self.books:
             self.book_list.insert(parent='', index=tk.END, values=(
@@ -76,28 +96,26 @@ class Application(tk.Tk):
         else:
             return "★" * rating + "☆" * (5 - rating)
 
-    def on_startup_populate_list_combobox(self):
-        result = ListController.get_all_lists()
-        for list in result:
-            self.lists.append(list.name)
-        self.list_combobox['values'] = self.lists
+    def find_all_lists(self):
+        all_lists = ListController.get_all_lists()
 
-    def list_filter_changed(self, event):
-        if self.list_combobox.get() == "None":
-            self.books = BookController.get_all_books()
-        else:
-            self.books = BookController.get_books_by_list(self.list_combobox.get())
+        self.lists = ["None"]
+        for item in all_lists:
+            self.lists.append(item.name)
 
-        self.insert_book_list_items()
+    def update_lists(self, event):
+        self.find_all_lists()
+        self.search_frame.update_lists(self.lists)
+        self.list_frame.update_lists(self.lists)
 
-    def add_book(self):
+    def open_add_book_dialog(self):
         AddBookDialog(self, self.lists)
 
-    def open_right_click_menu(self, event):
+    def open_book_right_click_menu(self, event):
         selected_item_id = self.book_list.identify_row(event.y)
         self.book_list.selection_set(selected_item_id)
         selected_item = self.book_list.item(selected_item_id)
-        RightClickMenu(self, event, selected_item, self.lists)
+        BookRightClickMenu(self, event, selected_item, self.lists)
 
     def treeview_sort_column(self, tv, col, reverse):
         l = [(tv.set(k, col), k) for k in tv.get_children('')]
