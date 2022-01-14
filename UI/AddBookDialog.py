@@ -1,7 +1,8 @@
+import logging
 import tkinter as tk
 import tkinter.messagebox as msg_box
-import logging
-from Controllers import GoogleBooksApi, BookController, ListController
+
+from Controllers import GoogleBooksApi, BookController
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,6 @@ class AddBookDialog(tk.Toplevel):
 
                     insert_result = BookController.add_book(isbn, title, author, pages)
                     if insert_result is None:
-                        ListController.move_book_to_list(isbn, self.list_combobox_option.get())
                         self.master.event_generate("<<BookUpdate>>")
                         self.destroy()
                     else:

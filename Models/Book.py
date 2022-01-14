@@ -1,14 +1,14 @@
+from peewee import AutoField, TextField, IntegerField, ForeignKeyField
+
 from Models.List import List
+from Models.Peewee import Peewee
 
 
-class Book:
-
-    def __init__(self, book_id, ISBN, title, author, pages, rating, list_id, list_name):
-        self.book_id = book_id
-        self.ISBN = ISBN
-        self.title = title
-        self.author = author
-        self.pages = pages
-        self.rating = rating
-        self.list = List(list_id, list_name)
-
+class Book(Peewee):
+    book_id = AutoField(primary_key=True)
+    ISBN = TextField(unique=True)
+    title = TextField()
+    author = TextField(null=True)
+    pages = IntegerField(null=True)
+    rating = IntegerField(null=True)
+    list = ForeignKeyField(List, null=True)

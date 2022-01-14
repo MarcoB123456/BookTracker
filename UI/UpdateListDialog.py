@@ -1,6 +1,6 @@
-import tkinter as tk
-import tkinter.messagebox as msg_box
 import logging
+import tkinter as tk
+
 from Controllers import ListController
 
 logger = logging.getLogger(__name__)

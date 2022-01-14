@@ -1,6 +1,6 @@
 import tkinter as tk
-
 from tkinter import messagebox as msg_box
+
 from Controllers import BookController, ListController
 from UI.AddListDialog import AddListDialog
 from UI.UpdateListDialog import UpdateListDialog

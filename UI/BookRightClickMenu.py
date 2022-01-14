@@ -1,8 +1,8 @@
+import logging
 import tkinter as tk
 import tkinter.messagebox as msg_box
-import logging
 
-from Controllers import BookController, ListController
+from Controllers import BookController
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 class BookRightClickMenu(tk.Menu):
     def __init__(self, parent, event, item, lists):
         super().__init__(parent, tearoff=0)
+
         self.item = item
 
         self.add_command(label="Copy isbn", command=lambda: self.copy_value(0))
@@ -19,13 +20,13 @@ class BookRightClickMenu(tk.Menu):
         self.add_command(label="Copy list", command=lambda: self.copy_value(4))
         self.add_separator()
         self.add_command(label="Delete book", command=self.delete_book)
-        if self.item['tags'][0] != 'None':
+        if self.item["tags"][0] != "None":
             self.add_command(label="Remove from list", command=self.remove_book_from_list)
 
         # Build list portion
         self.list_menu = tk.Menu(self)
         for list_item in lists:
-            if list_item == self.item['tags'][0]:
+            if list_item == self.item["tags"][0]:
                 list_item = list_item + " ✓"
             self.list_menu.add_command(label=list_item,
                                        command=lambda list_item=list_item: self.move_book_to_list(list_item))
@@ -65,11 +66,11 @@ class BookRightClickMenu(tk.Menu):
 
     def move_book_to_list(self, list_name):
         # TODO: Add confirm window if already in a list. Not sure if this is actually needed
-        ListController.move_book_to_list(self.item['values'][0], list_name)
+        BookController.move_book_to_list(self.item['values'][0], list_name)
         self.master.event_generate("<<BookUpdate>>")
 
     def remove_book_from_list(self):
-        ListController.remove_book_from_list(self.item['values'][0])
+        BookController.remove_book_from_list(self.item['values'][0])
         self.master.event_generate("<<BookUpdate>>")
 
     def update_rating(self, rating):

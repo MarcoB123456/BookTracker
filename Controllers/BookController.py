@@ -1,50 +1,36 @@
-import sqlite3
 import logging
+
+from peewee import PeeweeException, DoesNotExist
+
 from Models.Book import Book
+from Models.List import List
 
 logger = logging.getLogger(__name__)
 
 
-def get_connection():
-    logger.debug("Opening database connection")
-    return sqlite3.connect("BookTracker.db")
-
-
 def get_all_books():
-    conn = get_connection()
     logger.info("Querying all books")
-    cursor = conn.execute("""SELECT Book.Id, ISBN, Title, Author, Pages, Rating, ListId, Name 
-                                FROM Book LEFT JOIN List ON Book.ListId = List.Id""")
-    result = [Book(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7]) for item in
-              cursor.fetchall()]
-    conn.close()
+    query = Book.select()
+    result = [book for book in query]
     return result
 
 
-def get_books_by_list(list):
-    conn = get_connection()
+def get_books_by_list(list_name):
     logger.info("Querying books by list")
-    cursor = conn.execute(
-        f"""SELECT Book.Id, ISBN, Title, Author, Pages, Rating, ListId, Name 
-            FROM Book INNER JOIN List ON Book.ListId = List.Id WHERE List.Name = '{list}'""")
-    result = [Book(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7]) for item in
-              cursor.fetchall()]
-    conn.close()
+    query = Book.select().join(List).where(List.name == list_name)
+    result = [book for book in query]
     return result
 
 
-def get_books_by_filter(filter):
-    conn = get_connection()
+def get_books_by_filter(filter_):
     logger.info("Querying books by filter")
-    logger.debug(f"Filter used is: {filter}")
+    logger.debug(f"Filter used is: {filter_}")
 
-    query = "SELECT Book.Id, ISBN, Title, Author, Pages, Rating, ListId, Name FROM Book LEFT JOIN List ON Book.ListId = List.Id "
-    if filter.list_name is not None and filter.list_name != "None":
-        query += f"WHERE List.Name = '{filter.list_name}' "
-    cursor = conn.execute(query)
-    result = [Book(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7]) for item in
-              cursor.fetchall()]
-    conn.close()
+    query = Book.select()
+
+    if filter_.list_name is not None and filter_.list_name != "None":
+        query = query.join(List).where(List.name == filter_.list_name)
+    result = [book for book in query]
     return result
 
 
@@ -63,76 +49,86 @@ def get_books_by_author(author):
     raise NotImplementedError("Not yet implemented")
 
 
-def add_book(isbn, title, author, pages):
-    conn = get_connection()
+def add_book(isbn, title, author, pages, list_name=None):
     logger.info("Adding book to database")
-    logger.debug(f"Adding values isbn: {isbn}, title: {title}, author: {author}, pages: {pages}")
-    conn.execute(
-        f"INSERT INTO Book ('ISBN', 'Title', 'Author', 'Pages') VALUES (?, ?, ?, ?)", (isbn, title, author, pages))
+    logger.debug(f"Adding values isbn: {isbn}, title: {title}, author: {author}, pages: {pages}, list: {list_name}")
     try:
-        conn.commit()
-        conn.close()
-    except sqlite3.Error as msg:
+        if list_name is None:
+            Book.create(ISBN=isbn, title=title, author=author, pages=pages)
+        else:
+            Book.create(ISBN=isbn, title=title, author=author, pages=pages, list=List.get(List.name).list_id)
+
+        return None
+    except PeeweeException as msg:
         logger.warning(
             f"""Error while inserting book with params isbn: {isbn}, title: {title}, author: {author}, pages: {pages}
-                , with message: {msg}""")
-        conn.close()
+            , list: {list_name}, with message: {msg}""")
         return msg
 
 
 def book_exists(isbn):
-    conn = get_connection()
     logger.info(f"Checking if book with isbn: {isbn} already exists")
-    cursor = conn.execute("SELECT ISBN FROM Book WHERE ISBN = ?", (isbn,))
-    if cursor.fetchone() is not None:
+    try:
+        Book.get(ISBN=isbn)
         logger.debug(f"Book with isbn: {isbn} already exists")
-        conn.close()
         return True
-    else:
+    except DoesNotExist:
         logger.debug(f"Book with isbn: {isbn} does not yet exist")
-        conn.close()
         return False
 
 
 def remove_book(isbn):
-    conn = get_connection()
     logger.info(f"Removing book with isbn: {isbn} from the database")
-    conn.execute("DELETE FROM book WHERE isbn= ?", (isbn,))
     try:
-        conn.commit()
-        conn.close()
-    except sqlite3.Error as msg:
+        book = Book.get(Book.ISBN == isbn)
+        # Returns amount of deleted rows
+        book.delete_instance()
+    except DoesNotExist as msg:
         logger.warning(
             f"Error while deleting book with isbn: {isbn}, with message: {msg}")
-        conn.close()
         return msg
 
 
 def update_book_rating(isbn, rating):
-    conn = get_connection()
     logger.info(f"Updating rating: {rating} for book with isbn: {isbn}")
-    conn.execute(
-        "UPDATE Book SET Rating = ? WHERE ISBN = ?", (rating, isbn))
     try:
-        conn.commit()
-        conn.close()
-    except sqlite3.Error as msg:
+        query = Book.update(rating=rating).where(Book.ISBN == isbn)
+        # Returns updated rows
+        query.execute()
+    except PeeweeException as msg:
         logger.warning(
             f"""Error while updating rating: {rating} for book with isbn: {isbn}, message: {msg}""")
-        conn.close()
+        return msg
+
+
+def move_book_to_list(isbn, list_name):
+    logger.info(f"Moving book with isbn: {isbn} to list with name: {list_name}")
+    try:
+        query = Book.update(list=List.get(name=list_name).list_id).where(Book.ISBN == isbn)
+        query.execute()
+    except PeeweeException as msg:
+        logger.warning(
+            f"""Error while moving book with isbn: {isbn} to list with name: {list_name}, message: {msg}""")
+        return msg
+
+
+def remove_book_from_list(isbn):
+    logger.info(f"Removing book with isbn: {isbn} from list.")
+    try:
+        query = Book.update(list=None).where(Book.ISBN == isbn)
+        query.execute()
+    except PeeweeException as msg:
+        logger.warning(
+            f"""Error while removing book with isbn: {isbn} from list, message: {msg}""")
         return msg
 
 
 def remove_all_books_from_list(list_name):
-    conn = get_connection()
     logger.info(f"Remove all books from list with name: {list_name}")
-    conn.execute("UPDATE Book SET ListId = ? WHERE ListId = (SELECT List.Id FROM List WHERE Name = ?)",
-                 (None, list_name))
     try:
-        conn.commit()
-        conn.close()
-    except sqlite3.Error as msg:
+        query = Book.update(list=None).where(List.get(name=list_name).list_id)
+        query.execute()
+    except PeeweeException as msg:
         logger.warning(
             f"""Error while removing all books from list with name: {list_name}, message: {msg}""")
-        conn.close()
         return msg

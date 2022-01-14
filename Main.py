@@ -1,7 +1,10 @@
-from UI.Application import Application
-from os.path import exists
-import sqlite3
 import logging
+from os.path import exists
+
+from Models.Book import Book
+from Models.List import List
+from Models.Peewee import db
+from UI.Application import Application
 
 
 def log_init():
@@ -14,31 +17,13 @@ def log_init():
 
 def db_init():
     if not exists("BookTracker.db"):
-        conn = sqlite3.connect("BookTracker.db")
-        conn.execute("""CREATE TABLE IF NOT EXISTS Book
-                        (Id INTEGER NOT NULL PRIMARY KEY,
-                        ISBN TEXT NOT NULL,
-                        Title TEXT NOT NULL,
-                        Author TEXT NOT NULL,
-                        Pages TEXT,
-                        Rating INTEGER,
-                        ListId INTEGER,
-                        FOREIGN KEY(ListId) REFERENCES List(ID));""")
+        db.create_tables([List, Book])
 
-        conn.execute("""CREATE TABLE IF NOT EXISTS List
-                        (Id INTEGER NOT NULL PRIMARY KEY,
-                        Name TEXT NOT NULL);""")
+        List.create(name="Reading")
+        List.create(name="To-read")
+        List.create(name="Finished")
+        List.create(name="Dropped")
 
-        conn.execute("INSERT INTO List (Name) VALUES ('Reading')")
-        conn.execute("INSERT INTO List (Name) VALUES ('To-read')")
-        conn.execute("INSERT INTO List (Name) VALUES ('Dropped')")
-
-    # conn.execute("INSERT INTO Book (ISBN, Title, Author, Pages, ListId) VALUES ('123','Title A','Author A','123', 1)")
-    # conn.execute("INSERT INTO Book (ISBN, Title, Author, Pages) VALUES ('456','Title B','Author B','233')")
-    # conn.execute("INSERT INTO Book (ISBN, Title, Author, Pages) VALUES ('789','Title C','Author C','456')")
-
-        conn.commit()
-        conn.close()
 
 
 if __name__ == '__main__':

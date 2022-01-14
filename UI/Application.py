@@ -1,5 +1,4 @@
 import tkinter as tk
-import ast
 from tkinter import ttk
 
 from Controllers import BookController, ListController
@@ -88,7 +87,13 @@ class Application(tk.Tk):
         for book in self.books:
             self.book_list.insert(parent='', index=tk.END, values=(
                 book.ISBN, book.title, book.author, book.pages, self.build_rating(book.rating)),
-                                  tags=(book.list.name,))
+                                  tags=(self.listNotNone(book),))
+
+    def listNotNone(self, book):
+        if book.list is None:
+            return "None"
+        else:
+            return book.list.name
 
     def build_rating(self, rating):
         if rating is None:

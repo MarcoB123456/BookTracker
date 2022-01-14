@@ -1,8 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 
-from Controllers import ListController
-
 
 class SearchFrame(tk.Frame):
     def __init__(self, parent, lists):

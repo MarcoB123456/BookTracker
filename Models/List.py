@@ -1,5 +1,8 @@
-class List:
+from peewee import AutoField, TextField
 
-    def __init__(self, list_id, name):
-        self.list_id = list_id
-        self.name = name
+from Models.Peewee import Peewee
+
+
+class List(Peewee):
+    list_id = AutoField(primary_key=True)
+    name = TextField(unique=True)
