@@ -12,3 +12,6 @@ class Book(Peewee):
     pages = IntegerField(null=True)
     rating = IntegerField(null=True)
     list = ForeignKeyField(List, null=True)
+
+    def get_readings(self):
+        return [read for read in self.readings]

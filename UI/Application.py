@@ -15,7 +15,7 @@ class Application(tk.Tk):
         self.tk.call("source", "sun-valley.tcl")
         self.tk.call("set_theme", "dark")
         self.title("BookTracker")
-        self.geometry("1000x500")
+        self.geometry(f"{int(self.winfo_screenwidth() * 0.8)}x{int(self.winfo_screenheight() * 0.6)}")
 
         # Custom event's
         self.bind("<<BookUpdate>>", self.find_all_books_with_filter)
@@ -39,14 +39,16 @@ class Application(tk.Tk):
         self.search_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
         # Build book list
-        book_list_columns = ('ISBN', 'Title', 'Author', 'Pages', 'Rating')
+        book_list_columns = ('ISBN', 'Title', 'Author', 'Pages', 'Rating', 'Start date', 'End date')
         self.book_list = ttk.Treeview(self, columns=book_list_columns, selectmode='browse')
-        self.book_list.column("#0", width=0, stretch=tk.NO)
+        self.book_list.column("#0", width=20, stretch=tk.NO)
         self.book_list.column("ISBN", stretch=tk.NO, anchor=tk.CENTER, minwidth=100, width=100)
         self.book_list.column("Title", stretch=tk.YES, anchor=tk.CENTER, width=300)
         self.book_list.column("Author", stretch=tk.NO, anchor=tk.CENTER, width=200)
         self.book_list.column("Pages", stretch=tk.NO, anchor=tk.CENTER, minwidth=100, width=100)
         self.book_list.column("Rating", stretch=tk.NO, anchor=tk.CENTER, minwidth=100, width=100)
+        self.book_list.column("Start date", stretch=tk.NO, anchor=tk.CENTER, minwidth=100, width=100)
+        self.book_list.column("End date", stretch=tk.NO, anchor=tk.CENTER, minwidth=100, width=100)
         self.book_list.heading("#0", text="")
         for column in book_list_columns:
             self.book_list.heading(column, text=column,
@@ -85,15 +87,34 @@ class Application(tk.Tk):
     def populate_book_list(self):
         self.book_list.delete(*self.book_list.get_children())
         for book in self.books:
-            self.book_list.insert(parent='', index=tk.END, values=(
-                book.ISBN, book.title, book.author, book.pages, self.build_rating(book.rating)),
-                                  tags=(self.listNotNone(book),))
+            start_date, end_date = self.hasOneReadMinimum(book.get_readings())
+            row_id = self.add_book_list_item(book, start_date, end_date)
+            if len(book.get_readings()) > 1:
+                readings = book.get_readings()
+                readings.pop(0)
+                for read in readings:
+                    self.add_book_child_item(book, read.start_date, read.end_date, row_id)
+
+    def add_book_list_item(self, book, start_date='', end_date=''):
+        return self.book_list.insert(parent='', index=tk.END, values=(
+            book.ISBN, book.title, book.author, book.pages, self.build_rating(book.rating), start_date,
+            end_date), tags=(self.listNotNone(book),))
+
+    def add_book_child_item(self, book, start_date, end_date, row_id):
+        return self.book_list.insert(parent=row_id, index=tk.END, values=('', '', '', '', '', start_date, end_date),
+                                     tags=(self.listNotNone(book),))
 
     def listNotNone(self, book):
         if book.list is None:
             return "None"
         else:
             return book.list.name
+
+    def hasOneReadMinimum(self, readings):
+        if len(readings) > 0:
+            return readings[0].start_date, readings[0].end_date
+        else:
+            return '', ''
 
     def build_rating(self, rating):
         if rating is None:
@@ -118,6 +139,8 @@ class Application(tk.Tk):
 
     def open_book_right_click_menu(self, event):
         selected_item_id = self.book_list.identify_row(event.y)
+        if self.book_list.parent(selected_item_id) != '':
+            selected_item_id = self.book_list.parent(selected_item_id)
         self.book_list.selection_set(selected_item_id)
         selected_item = self.book_list.item(selected_item_id)
         BookRightClickMenu(self, event, selected_item, self.lists)

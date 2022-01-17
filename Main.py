@@ -4,6 +4,7 @@ from os.path import exists
 from Models.Book import Book
 from Models.List import List
 from Models.Peewee import db
+from Models.Read import Read
 from UI.Application import Application
 
 
@@ -17,12 +18,17 @@ def log_init():
 
 def db_init():
     if not exists("BookTracker.db"):
-        db.create_tables([List, Book])
+        db.create_tables([List, Book, Read])
 
         List.create(name="Reading")
         List.create(name="To-read")
         List.create(name="Finished")
         List.create(name="Dropped")
+
+        new_book = Book.create(ISBN=123344, title="Title", author="Author")
+
+        Read.create(start_date="10-10-2020", end_date="10-10-2022", book=new_book)
+        Read.create(start_date="20-10-2021", end_date="02-12-2022", book=new_book)
 
 
 

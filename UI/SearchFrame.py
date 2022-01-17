@@ -14,7 +14,6 @@ class SearchFrame(tk.Frame):
         self.list_label = tk.Label(self, text="List", anchor=tk.W, font="Helvetica 14 bold")
         self.list_label.place(relx=0.1, rely=0.03, relwidth=0.8, relheight=0.05)
 
-        self.list_combobox_selected = tk.StringVar()
         self.list_combobox = ttk.Combobox(self)
         self.list_combobox.bind('<<ComboboxSelected>>', self.list_filter_changed)
 
