@@ -105,9 +105,7 @@ class AddBookDialog(tk.Toplevel):
                     start_date = self.start_date_entry.get_date()
                     end_date = self.end_date_entry.get_date()
 
-                    insert_result = BookController.add_book(isbn, title, author, pages)
-                    if insert_result is None:
+                    new_book = BookController.add_book(isbn, title, author, pages)
+                    if new_book is not None:
                         self.master.event_generate("<<BookUpdate>>")
                         self.destroy()
-                    else:
-                        msg_box.showerror("Error while inserting book", insert_result)

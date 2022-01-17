@@ -38,8 +38,6 @@ class AddListDialog(tk.Toplevel):
             self.warning_label_text.set("List already exists")
         else:
             result = ListController.add_list(list_name)
-            if result is None:
+            if result is not None:
                 self.result.set(list_name)
                 self.destroy()
-            else:
-                logger.debug(f"Error while adding list. {result}")

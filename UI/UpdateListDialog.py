@@ -41,8 +41,6 @@ class UpdateListDialog(tk.Toplevel):
             self.warning_label_text.set("List already exists")
         else:
             result = ListController.update_list(new_name, self.old_name)
-            if result is None:
+            if result is not None:
                 self.result.set(new_name)
                 self.destroy()
-            else:
-                logger.debug(f"Error while updating list. {result}")

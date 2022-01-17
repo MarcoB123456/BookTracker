@@ -1,4 +1,5 @@
 import logging
+import tkinter.messagebox as msg_box
 
 from peewee import PeeweeException, DoesNotExist
 
@@ -54,16 +55,15 @@ def add_book(isbn, title, author, pages, list_name=None):
     logger.debug(f"Adding values isbn: {isbn}, title: {title}, author: {author}, pages: {pages}, list: {list_name}")
     try:
         if list_name is None:
-            Book.create(ISBN=isbn, title=title, author=author, pages=pages)
+            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages)
         else:
-            Book.create(ISBN=isbn, title=title, author=author, pages=pages, list=List.get(List.name).list_id)
-
-        return None
-    except PeeweeException as msg:
+            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages, list=List.get(List.name).list_id)
+        return new_book
+    except PeeweeException as exception:
         logger.warning(
             f"""Error while inserting book with params isbn: {isbn}, title: {title}, author: {author}, pages: {pages}
-            , list: {list_name}, with message: {msg}""")
-        return msg
+            , list: {list_name}, with message: {exception}""")
+        msg_box.showerror("Error in BookController", exception)
 
 
 def book_exists(isbn):
@@ -82,11 +82,13 @@ def remove_book(isbn):
     try:
         book = Book.get(Book.ISBN == isbn)
         # Returns amount of deleted rows
-        book.delete_instance()
-    except DoesNotExist as msg:
+        removed_rows = book.delete_instance()
+        logger.debug(f"Removed {removed_rows} amount of rows")
+        return removed_rows
+    except DoesNotExist as exception:
         logger.warning(
-            f"Error while deleting book with isbn: {isbn}, with message: {msg}")
-        return msg
+            f"Error while deleting book with isbn: {isbn}, with message: {exception}")
+        msg_box.showerror("Error in BookController", exception)
 
 
 def update_book_rating(isbn, rating):
@@ -94,11 +96,13 @@ def update_book_rating(isbn, rating):
     try:
         query = Book.update(rating=rating).where(Book.ISBN == isbn)
         # Returns updated rows
-        query.execute()
-    except PeeweeException as msg:
+        updated_rows = query.execute()
+        logger.debug(f"Updated {updated_rows} rows")
+        return updated_rows
+    except PeeweeException as exception:
         logger.warning(
-            f"""Error while updating rating: {rating} for book with isbn: {isbn}, message: {msg}""")
-        return msg
+            f"""Error while updating rating: {rating} for book with isbn: {isbn}, message: {exception}""")
+        msg_box.showerror("Error in BookController", exception)
 
 
 def move_book_to_list(isbn, list_name):
@@ -106,29 +110,33 @@ def move_book_to_list(isbn, list_name):
     try:
         query = Book.update(list=List.get(name=list_name).list_id).where(Book.ISBN == isbn)
         query.execute()
-    except PeeweeException as msg:
+    except PeeweeException as exception:
         logger.warning(
-            f"""Error while moving book with isbn: {isbn} to list with name: {list_name}, message: {msg}""")
-        return msg
+            f"""Error while moving book with isbn: {isbn} to list with name: {list_name}, message: {exception}""")
+        msg_box.showerror("Error in BookController", exception)
 
 
 def remove_book_from_list(isbn):
     logger.info(f"Removing book with isbn: {isbn} from list.")
     try:
         query = Book.update(list=None).where(Book.ISBN == isbn)
-        query.execute()
-    except PeeweeException as msg:
+        updated_rows = query.execute()
+        logger.debug(f"Updated {updated_rows} rows")
+        return updated_rows
+    except PeeweeException as exception:
         logger.warning(
-            f"""Error while removing book with isbn: {isbn} from list, message: {msg}""")
-        return msg
+            f"""Error while removing book with isbn: {isbn} from list, message: {exception}""")
+        msg_box.showerror("Error in BookController", exception)
 
 
 def remove_all_books_from_list(list_name):
     logger.info(f"Remove all books from list with name: {list_name}")
     try:
         query = Book.update(list=None).where(List.get(name=list_name).list_id)
-        query.execute()
-    except PeeweeException as msg:
+        updated_rows = query.execute()
+        logger.debug(f"Updated {updated_rows} rows")
+        return updated_rows
+    except PeeweeException as exception:
         logger.warning(
-            f"""Error while removing all books from list with name: {list_name}, message: {msg}""")
-        return msg
+            f"""Error while removing all books from list with name: {list_name}, message: {exception}""")
+        msg_box.showerror("Error in BookController", exception)

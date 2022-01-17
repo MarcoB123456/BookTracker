@@ -31,7 +31,6 @@ def db_init():
         Read.create(start_date="20-10-2021", end_date="02-12-2022", book=new_book)
 
 
-
 if __name__ == '__main__':
     log_init()
     db_init()

@@ -51,7 +51,7 @@ class ListFrame(tk.Frame):
             list_name = self.lists_list.get(cur_selection)
             if msg_box.askyesno("Remove list", f"Are you sure you wish to delete list with name: {list_name}"):
                 result = BookController.remove_all_books_from_list(list_name)
-                if result is None:
+                if result is not None:
                     ListController.remove_list(list_name)
 
                 self.lists_list.delete(cur_selection)
