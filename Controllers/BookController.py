@@ -36,9 +36,14 @@ def get_books_by_filter(filter_):
 
 
 def get_book_by_isbn(isbn):
-    # TODO: Implement this
-    raise NotImplementedError("Not yet implemented")
+    logger.info("Querying book by isbn")
 
+    try:
+        book = Book.get(Book.ISBN == isbn)
+        return book
+    except DoesNotExist as exception:
+        logger.debug(f"Book with isbn: {isbn} does not exist")
+        msg_box.showerror("Error in BookController", exception)
 
 def get_books_by_title(title):
     # TODO: Implement this
