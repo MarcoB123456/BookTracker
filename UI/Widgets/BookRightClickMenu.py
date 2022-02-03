@@ -25,7 +25,7 @@ class BookRightClickMenu(tk.Menu):
 
         # Build list portion
         self.list_menu = tk.Menu(self)
-        for list_item in lists:
+        for list_item in lists.get():
             if list_item == self.item["tags"][0]:
                 list_item = list_item + " ✓"
             self.list_menu.add_command(label=list_item,

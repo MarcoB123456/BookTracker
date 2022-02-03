@@ -2,11 +2,13 @@ import tkinter as tk
 from tkinter import ttk
 
 from Controllers import BookController, ListController
+from Models.Book import Book
 from Models.Filter import Filter
-from UI.AddBookDialog import AddBookDialog
-from UI.BookRightClickMenu import BookRightClickMenu
-from UI.ListFrame import ListFrame
-from UI.SearchFrame import SearchFrame
+from UI.Dialogs.AddBookDialog import AddBookDialog
+from UI.Widgets.BookRightClickMenu import BookRightClickMenu
+from UI.Widgets.JSONVar import JSONVar
+from UI.Widgets.ListFrame import ListFrame
+from UI.Widgets.SearchFrame import SearchFrame
 
 
 class Application(tk.Tk):
@@ -19,13 +21,15 @@ class Application(tk.Tk):
 
         # Custom event's
         self.bind("<<BookUpdate>>", self.find_all_books_with_filter)
-        self.bind("<<ListUpdate>>", self.update_lists)
 
         # Variables
         self.books = []
         self.find_all_books()
 
-        self.lists = ["None"]
+        #TODO:  Should probably add book_isbns or something as a JSONVar so it can update like that instead of doing the BookUpdate thingy
+
+        self.lists = JSONVar(self)
+        self.lists.set(["None"])
         self.find_all_lists()
 
         # Build list filter
@@ -124,18 +128,21 @@ class Application(tk.Tk):
 
     def find_all_lists(self):
         all_lists = ListController.get_all_lists()
+        curr_lists = self.lists.get()
 
-        self.lists = ["None"]
         for item in all_lists:
-            self.lists.append(item.name)
+            curr_lists.append(item.name)
 
-    def update_lists(self, event):
-        self.find_all_lists()
-        self.search_frame.update_lists(self.lists)
-        self.list_frame.update_lists(self.lists)
+        self.lists.set(curr_lists)
 
     def open_add_book_dialog(self):
-        AddBookDialog(self, self.lists)
+        result_book = JSONVar(self)
+        result_book.set("")
+        add_book_dialog = AddBookDialog(self, self.lists, result_book)
+        self.wait_window(add_book_dialog)
+        if result_book.get() != "":
+            self.books.append(Book.from_dict(result_book.get()))
+            self.populate_book_list()
 
     def open_book_right_click_menu(self, event):
         selected_item_id = self.book_list.identify_row(event.y)

@@ -10,11 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class AddBookDialog(tk.Toplevel):
-
     height = 250
     width = 500
 
-    def __init__(self, parent, lists):
+    def __init__(self, parent, lists, result_book):
         super().__init__(parent)
         logger.debug("Initializing AddBookDialog")
 
@@ -22,6 +21,8 @@ class AddBookDialog(tk.Toplevel):
         self.geometry(f"{self.width}x{self.height}")
 
         self.lists = lists
+
+        self.result_book = result_book
 
         self.main_frame = tk.Frame(self)
         self.main_frame.place(relx=0, rely=0, relheight=1, relwidth=1)
@@ -43,7 +44,7 @@ class AddBookDialog(tk.Toplevel):
 
         self.list_combobox = ttk.Combobox(self.main_frame, textvariable=self.list_combobox_option)
         self.list_combobox.bind('<<ComboboxSelected>>', self.list_changed)
-        self.list_combobox["values"] = self.lists
+        self.list_combobox["values"] = self.lists.get()
         self.list_combobox.place(relx=0.1, rely=0.7, relheight=0.2, relwidth=0.4)
 
         self.lookup_button = tk.Button(self, text="Add book", command=self.lookup)
@@ -73,10 +74,12 @@ class AddBookDialog(tk.Toplevel):
             case _:
                 self.geometry(f"{self.width}x{self.height}")
                 self.main_frame.place_configure(relwidth=1)
+
     def lookup(self):
         isbn = self.isbn_entry.get()
         # TODO: Add isbn validation. Otherwise books might still be added double.
         #  Since the api simply returns the nearest valid isbn
+
         # Check for alphabetical characters which are not allowed in an isbn
         if any(c.isalpha() for c in isbn):
             self.warning_label_text.set("Value can only contain numbers")
@@ -101,11 +104,12 @@ class AddBookDialog(tk.Toplevel):
                     title = json_result['items'][0]['volumeInfo']['title']
                     author = json_result['items'][0]['volumeInfo']['authors'][0]
                     pages = json_result['items'][0]['volumeInfo']['pageCount']
-                    
+                    list_ = self.list_combobox_option.get()
+
                     start_date = self.start_date_entry.get_date()
                     end_date = self.end_date_entry.get_date()
 
-                    new_book = BookController.add_book(isbn, title, author, pages)
+                    new_book = BookController.add_book(isbn, title, author, pages, list_)
                     if new_book is not None:
-                        self.master.event_generate("<<BookUpdate>>")
+                        self.result_book.set(new_book.to_dict())
                         self.destroy()

@@ -45,6 +45,7 @@ def get_book_by_isbn(isbn):
         logger.debug(f"Book with isbn: {isbn} does not exist")
         msg_box.showerror("Error in BookController", exception)
 
+
 def get_books_by_title(title):
     # TODO: Implement this
     raise NotImplementedError("Not yet implemented")
@@ -59,10 +60,11 @@ def add_book(isbn, title, author, pages, list_name=None):
     logger.info("Adding book to database")
     logger.debug(f"Adding values isbn: {isbn}, title: {title}, author: {author}, pages: {pages}, list: {list_name}")
     try:
-        if list_name is None:
+        if list_name is None or list_name == "None":
             new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages)
         else:
-            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages, list=List.get(List.name).list_id)
+            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages,
+                                   list=List.get(List.name == list_name).list_id)
         return new_book
     except PeeweeException as exception:
         logger.warning(
