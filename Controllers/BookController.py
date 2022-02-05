@@ -56,20 +56,21 @@ def get_books_by_author(author):
     raise NotImplementedError("Not yet implemented")
 
 
-def add_book(isbn, title, author, pages, list_name=None):
+def add_book(isbn, title, author, pages, rating=None, list_name=None):
     logger.info("Adding book to database")
-    logger.debug(f"Adding values isbn: {isbn}, title: {title}, author: {author}, pages: {pages}, list: {list_name}")
+    logger.debug(
+        f"Adding values isbn: {isbn}, title: {title}, author: {author}, pages: {pages}, rating: {rating}, list: {list_name}")
     try:
         if list_name is None or list_name == "None":
-            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages)
+            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages, rating=rating)
         else:
-            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages,
+            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages, rating=rating,
                                    list=List.get(List.name == list_name).list_id)
         return new_book
     except PeeweeException as exception:
         logger.warning(
             f"""Error while inserting book with params isbn: {isbn}, title: {title}, author: {author}, pages: {pages}
-            , list: {list_name}, with message: {exception}""")
+            ,rating: {rating}, list: {list_name}, with message: {exception}""")
         msg_box.showerror("Error in BookController", exception)
 
 
@@ -109,6 +110,28 @@ def update_book_rating(isbn, rating):
     except PeeweeException as exception:
         logger.warning(
             f"""Error while updating rating: {rating} for book with isbn: {isbn}, message: {exception}""")
+        msg_box.showerror("Error in BookController", exception)
+
+
+def update_book(new_book: Book):
+    logger.info(f"Updating book")
+    try:
+        old_book: Book = Book.get_by_id(new_book.book_id)
+
+        old_book.title = new_book.title
+        old_book.author = new_book.author
+        old_book.pages = new_book.pages
+        if new_book.list.name is None or new_book.list.name == "None":
+            old_book.list = None
+        else:
+            old_book.list = List.get(List.name == new_book.list.name)
+        old_book.rating = new_book.rating
+
+        updated_rows = old_book.save()
+        return updated_rows
+    except DoesNotExist as exception:
+        logger.warning(
+            f"""Error while updating book with isbn: {new_book.ISBN} """)
         msg_box.showerror("Error in BookController", exception)
 
 

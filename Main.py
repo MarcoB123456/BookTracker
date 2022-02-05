@@ -25,7 +25,7 @@ def db_init():
         List.create(name="Finished")
         List.create(name="Dropped")
 
-        new_book = Book.create(ISBN=123344, title="Title", author="Author")
+        new_book = Book.create(ISBN=123344, title="Title", author="Author", )
 
         Read.create(start_date="10-10-2020", end_date="10-10-2022", book=new_book)
         Read.create(start_date="20-10-2021", end_date="02-12-2022", book=new_book)

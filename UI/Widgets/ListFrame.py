@@ -2,9 +2,9 @@ import tkinter as tk
 from tkinter import messagebox as msg_box
 
 from Controllers import BookController, ListController
+from UI.Custom.JSONVar import JSONVar
 from UI.Dialogs.AddListDialog import AddListDialog
 from UI.Dialogs.UpdateListDialog import UpdateListDialog
-from UI.Widgets.JSONVar import JSONVar
 
 
 class ListFrame(tk.Frame):

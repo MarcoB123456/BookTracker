@@ -1,5 +1,5 @@
-import tkinter as tk
 import json
+import tkinter as tk
 
 
 class JSONVar(tk.StringVar):

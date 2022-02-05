@@ -12,6 +12,7 @@ class Book(Peewee):
     author = TextField(null=True)
     pages = IntegerField(null=True)
     rating = IntegerField(null=True)
+    cover_image = TextField(null=True, default="Default.jpg")
     list = ForeignKeyField(List, null=True)
 
     def get_readings(self):

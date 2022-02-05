@@ -26,5 +26,5 @@ def fetch_book(isbn):
 
 
 if __name__ == '__main__':
-    # fetch_book("9781101965337")
-    fetch_book_by_title("Boneshaker")
+    print(fetch_book("9781101965337").json())
+    # fetch_book_by_title("Boneshaker")

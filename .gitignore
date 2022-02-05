@@ -6,6 +6,7 @@ __pycache__/
 BookTracker.db
 main.log
 .idea
+/Images/Covers/
 
 # C extensions
 *.so

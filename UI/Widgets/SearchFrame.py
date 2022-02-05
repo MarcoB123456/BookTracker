@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-from UI.Widgets.JSONVar import JSONVar
+from UI.Custom.JSONVar import JSONVar
 
 
 class SearchFrame(tk.Frame):

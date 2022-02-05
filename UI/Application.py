@@ -2,11 +2,12 @@ import tkinter as tk
 from tkinter import ttk
 
 from Controllers import BookController, ListController
+from Controllers.BookTrackerUtils import build_rating
 from Models.Book import Book
 from Models.Filter import Filter
+from UI.Custom.JSONVar import JSONVar
 from UI.Dialogs.AddBookDialog import AddBookDialog
 from UI.Widgets.BookRightClickMenu import BookRightClickMenu
-from UI.Widgets.JSONVar import JSONVar
 from UI.Widgets.ListFrame import ListFrame
 from UI.Widgets.SearchFrame import SearchFrame
 
@@ -20,13 +21,13 @@ class Application(tk.Tk):
         self.geometry(f"{int(self.winfo_screenwidth() * 0.8)}x{int(self.winfo_screenheight() * 0.6)}")
 
         # Custom event's
+        # TODO: Find a way to get rid of this. Constantly coverting books to dict is not really an option,
+        # but keeping everything in dicts doesn't really work with peewee all that well.
         self.bind("<<BookUpdate>>", self.find_all_books_with_filter)
 
         # Variables
         self.books = []
         self.find_all_books()
-
-        #TODO:  Should probably add book_isbns or something as a JSONVar so it can update like that instead of doing the BookUpdate thingy
 
         self.lists = JSONVar(self)
         self.lists.set(["None"])
@@ -101,7 +102,7 @@ class Application(tk.Tk):
 
     def add_book_list_item(self, book, start_date='', end_date=''):
         return self.book_list.insert(parent='', index=tk.END, values=(
-            book.ISBN, book.title, book.author, book.pages, self.build_rating(book.rating), start_date,
+            book.ISBN, book.title, book.author, book.pages, build_rating(book.rating), start_date,
             end_date), tags=(self.listNotNone(book),))
 
     def add_book_child_item(self, book, start_date, end_date, row_id):
@@ -119,12 +120,6 @@ class Application(tk.Tk):
             return readings[0].start_date, readings[0].end_date
         else:
             return '', ''
-
-    def build_rating(self, rating):
-        if rating is None:
-            return ""
-        else:
-            return "★" * rating + "☆" * (5 - rating)
 
     def find_all_lists(self):
         all_lists = ListController.get_all_lists()

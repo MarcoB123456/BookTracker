@@ -3,6 +3,7 @@ import tkinter as tk
 import tkinter.messagebox as msg_box
 
 from Controllers import BookController
+from UI.Dialogs.UpdateBookDialog import UpdateBookDialog
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,7 @@ class BookRightClickMenu(tk.Menu):
         super().__init__(parent, tearoff=0)
 
         self.item = item
+        self.lists = lists
 
         self.add_command(label="Copy isbn", command=lambda: self.copy_value(0))
         self.add_command(label="Copy title", command=lambda: self.copy_value(1))
@@ -19,13 +21,14 @@ class BookRightClickMenu(tk.Menu):
         self.add_command(label="Copy pages", command=lambda: self.copy_value(3))
         self.add_command(label="Copy list", command=lambda: self.copy_value(4))
         self.add_separator()
+        self.add_command(label="Update book", command=self.update_book)
         self.add_command(label="Delete book", command=self.delete_book)
         if self.item["tags"][0] != "None":
             self.add_command(label="Remove from list", command=self.remove_book_from_list)
 
         # Build list portion
         self.list_menu = tk.Menu(self)
-        for list_item in lists.get():
+        for list_item in self.lists.get():
             if list_item == self.item["tags"][0]:
                 list_item = list_item + " ✓"
             self.list_menu.add_command(label=list_item,
@@ -75,5 +78,10 @@ class BookRightClickMenu(tk.Menu):
 
     def update_rating(self, rating):
         BookController.update_book_rating(self.item['values'][0], rating)
+        self.master.event_generate("<<BookUpdate>>")
+
+    def update_book(self):
+        update_book_dialog = UpdateBookDialog(self.master, self.item['values'][0], self.lists)
+        self.wait_window(update_book_dialog)
         self.master.event_generate("<<BookUpdate>>")
 

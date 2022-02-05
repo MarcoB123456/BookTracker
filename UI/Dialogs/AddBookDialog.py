@@ -1,10 +1,10 @@
 import logging
 import tkinter as tk
-import tkinter.messagebox as msg_box
-
 from tkinter import ttk
-from Controllers import GoogleBooksApi, BookController
-from tkcalendar import DateEntry
+
+from Controllers import GoogleBooksApi, BookController, ReadController
+from UI.Custom.LabelInput import LabelInput
+from UI.Dialogs.AddBookDialogExtraFields import AddBookDialogExtraFields
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +27,13 @@ class AddBookDialog(tk.Toplevel):
         self.main_frame = tk.Frame(self)
         self.main_frame.place(relx=0, rely=0, relheight=1, relwidth=1)
 
-        self.isbn_label = tk.Label(self.main_frame, text="ISBN:", font="Helvetica 16 bold")
-        self.isbn_label.place(relx=0.1, rely=0.1, relheight=0.2, relwidth=0.3)
+        self.isbn_input_value = tk.StringVar()
+        self.isbn_input = LabelInput(self.main_frame, "ISBN:", self.isbn_input_value, ttk.Entry,
+                                     label_args={"font": "Helvetica 16 bold"})
+        self.isbn_input.place(relx=0.1, rely=0.1, relheight=0.4, relwidth=0.7)
 
-        self.isbn_entry = tk.Entry(self, font="Helvetica 12")
-        self.isbn_entry.place(relx=0.1, rely=0.3, relheight=0.2, relwidth=0.7)
+        # self.isbn_entry = tk.Entry(self.main_frame, font="Helvetica 12")
+        # self.isbn_entry.place(relx=0.1, rely=0.3, relheight=0.2, relwidth=0.7)
 
         self.warning_label_text = tk.StringVar()
         self.warning_label_text.set("")
@@ -47,36 +49,30 @@ class AddBookDialog(tk.Toplevel):
         self.list_combobox["values"] = self.lists.get()
         self.list_combobox.place(relx=0.1, rely=0.7, relheight=0.2, relwidth=0.4)
 
-        self.lookup_button = tk.Button(self, text="Add book", command=self.lookup)
+        self.lookup_button = tk.Button(self.main_frame, text="Add book", command=self.lookup)
         self.lookup_button.place(relx=0.6, rely=0.7, relheight=0.2, relwidth=0.3)
 
-        self.extra_options_frame = tk.Frame(self)
+        self.extra_options_frame = AddBookDialogExtraFields(self)
 
-        self.start_date_label = tk.Label(self.extra_options_frame, text="Starting date", font="Helvetica 16")
-        self.start_date_label.place(relx=0.1, rely=0.1, relwidth=0.7, relheight=0.1)
-        self.start_date_entry = DateEntry(self.extra_options_frame, width=16, locale="nl")
-        self.start_date_entry.place(relx=0.1, rely=0.2, relwidth=0.7, relheight=0.2)
+    def list_changed(self, *_):
+        list_value = self.list_combobox_option.get()
+        match list_value:
+            case "Finished" | "Reading":
 
-        self.end_date_label = tk.Label(self.extra_options_frame, text="Ending date", font="Helvetica 16")
-        self.end_date_label.place(relx=0.1, rely=0.5, relwidth=0.7, relheight=0.1)
-        self.end_date_entry = DateEntry(self.extra_options_frame, width=16, locale="nl")
-        self.end_date_entry.place(relx=0.1, rely=0.6, relwidth=0.7, relheight=0.2)
-
-    def list_changed(self, event):
-        match self.list_combobox_option.get():
-            case "Finished":
                 self.geometry(f"{self.width * 2}x{self.height}")
                 self.main_frame.place_configure(relwidth=0.5)
                 self.extra_options_frame.place_configure(relx=0.5, rely=0, relheight=1, relwidth=0.5)
-
-            case "Reading":
-                print("Reading")
+                if list_value =="Finished":
+                    self.extra_options_frame.show_fields(True, True, True)
+                else:
+                    self.extra_options_frame.show_fields(start_date=True)
             case _:
                 self.geometry(f"{self.width}x{self.height}")
+                self.extra_options_frame.place_forget()
                 self.main_frame.place_configure(relwidth=1)
 
     def lookup(self):
-        isbn = self.isbn_entry.get()
+        isbn = self.isbn_input_value.get()
         # TODO: Add isbn validation. Otherwise books might still be added double.
         #  Since the api simply returns the nearest valid isbn
 
@@ -106,10 +102,19 @@ class AddBookDialog(tk.Toplevel):
                     pages = json_result['items'][0]['volumeInfo']['pageCount']
                     list_ = self.list_combobox_option.get()
 
-                    start_date = self.start_date_entry.get_date()
-                    end_date = self.end_date_entry.get_date()
+                    rating = None
+                    if self.extra_options_frame.get_rating_index() != 0:
+                        rating = self.extra_options_frame.get_rating_index()
 
-                    new_book = BookController.add_book(isbn, title, author, pages, list_)
+                    new_book = BookController.add_book(isbn, title, author, pages, rating, list_)
+
+                    if (list_ == "Finished" or list_ == "Reading") and new_book is not None:
+                        start_date = self.extra_options_frame.get_start_date()
+                        end_date = None
+                        if list_ == "Finished":
+                            end_date = self.extra_options_frame.get_end_date()
+                        ReadController.add_reading(start_date, end_date, new_book.book_id)
+
                     if new_book is not None:
                         self.result_book.set(new_book.to_dict())
                         self.destroy()
