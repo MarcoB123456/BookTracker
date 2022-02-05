@@ -1,3 +1,4 @@
+import json
 import logging
 
 import requests
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 def fetch_book_by_title(title):
     url = f"https://www.googleapis.com/books/v1/volumes?q=intitle:{title}"
     logger.info(f"Requesting information for book with title: {title}")
-    response = requests.get(url)
+    return requests.get(url)
 
 
 def fetch_book(isbn):
@@ -26,5 +27,6 @@ def fetch_book(isbn):
 
 
 if __name__ == '__main__':
-    print(fetch_book("9781101965337").json())
-    # fetch_book_by_title("Boneshaker")
+    # print(fetch_book("9781101965337").json())
+    print(json.dumps(fetch_book_by_title("Boneshaker").json(), indent=4))
+

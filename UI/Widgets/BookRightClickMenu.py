@@ -2,7 +2,7 @@ import logging
 import tkinter as tk
 import tkinter.messagebox as msg_box
 
-from Controllers import BookController
+from Controllers import BookController, BookTrackerUtils
 from UI.Dialogs.UpdateBookDialog import UpdateBookDialog
 
 logger = logging.getLogger(__name__)
@@ -62,8 +62,11 @@ class BookRightClickMenu(tk.Menu):
         if msg_box.askyesno("Delete book", f"Are you sure you want to delete: {self.item['values'][1]}"):
             logger.debug(
                 f"Confirmed deletion of book with isbn: {self.item['values'][0]}, title: {self.item['values'][1]}")
-            BookController.remove_book(self.item['values'][0])
-            self.master.event_generate("<<BookUpdate>>")
+            removed_rows = BookController.remove_book(self.item['values'][0])
+            if removed_rows is not None:
+                BookTrackerUtils.remove_image(self.item['values'][0])
+                self.master.event_generate("<<BookUpdate>>")
+
         else:
             logger.debug("Rejected deletion process")
 

@@ -67,13 +67,13 @@ class ListFrame(tk.Frame):
         if len(cur_selection) != 0:
             old_name = self.lists_list.get(cur_selection)
 
-            self.update_list_result = tk.StringVar()
-            self.update_list_dialog = UpdateListDialog(self, self.lists, old_name, self.update_list_result)
-            self.wait_window(self.update_list_dialog)
-            if self.update_list_result.get() != "":
+            update_list_result = tk.StringVar()
+            update_list_dialog = UpdateListDialog(self, self.lists, old_name, update_list_result)
+            self.wait_window(update_list_dialog)
+            if update_list_result.get() != "":
                 idx = self.lists.get().index(old_name)
                 old_list = self.lists.get()
-                old_list[idx] = self.update_list_result.get()
+                old_list[idx] = update_list_result.get()
                 self.lists.set(old_list)
                 self.master.event_generate("<<BookUpdate>>")
 

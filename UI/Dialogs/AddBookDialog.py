@@ -2,7 +2,7 @@ import logging
 import tkinter as tk
 from tkinter import ttk
 
-from Controllers import GoogleBooksApi, BookController, ReadController
+from Controllers import GoogleBooksApi, BookController, ReadController, BookTrackerUtils
 from UI.Custom.LabelInput import LabelInput
 from UI.Dialogs.AddBookDialogExtraFields import AddBookDialogExtraFields
 
@@ -62,7 +62,7 @@ class AddBookDialog(tk.Toplevel):
                 self.geometry(f"{self.width * 2}x{self.height}")
                 self.main_frame.place_configure(relwidth=0.5)
                 self.extra_options_frame.place_configure(relx=0.5, rely=0, relheight=1, relwidth=0.5)
-                if list_value =="Finished":
+                if list_value == "Finished":
                     self.extra_options_frame.show_fields(True, True, True)
                 else:
                     self.extra_options_frame.show_fields(start_date=True)
@@ -100,13 +100,16 @@ class AddBookDialog(tk.Toplevel):
                     title = json_result['items'][0]['volumeInfo']['title']
                     author = json_result['items'][0]['volumeInfo']['authors'][0]
                     pages = json_result['items'][0]['volumeInfo']['pageCount']
+
+                    cover_image = BookTrackerUtils.save_image(
+                        json_result['items'][0]['volumeInfo']['imageLinks']['thumbnail'], isbn)
                     list_ = self.list_combobox_option.get()
 
                     rating = None
                     if self.extra_options_frame.get_rating_index() != 0:
                         rating = self.extra_options_frame.get_rating_index()
 
-                    new_book = BookController.add_book(isbn, title, author, pages, rating, list_)
+                    new_book = BookController.add_book(isbn, title, author, pages, cover_image, rating, list_)
 
                     if (list_ == "Finished" or list_ == "Reading") and new_book is not None:
                         start_date = self.extra_options_frame.get_start_date()

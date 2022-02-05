@@ -56,21 +56,22 @@ def get_books_by_author(author):
     raise NotImplementedError("Not yet implemented")
 
 
-def add_book(isbn, title, author, pages, rating=None, list_name=None):
+def add_book(isbn, title, author, pages, cover_image=None, rating=None, list_name=None):
     logger.info("Adding book to database")
     logger.debug(
-        f"Adding values isbn: {isbn}, title: {title}, author: {author}, pages: {pages}, rating: {rating}, list: {list_name}")
+        f"Adding values isbn: {isbn}, title: {title}, author: {author}, pages: {pages}, cover_image: {cover_image}, rating: {rating}, list: {list_name}")
     try:
         if list_name is None or list_name == "None":
-            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages, rating=rating)
+            new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages, rating=rating,
+                                   cover_image=cover_image)
         else:
             new_book = Book.create(ISBN=isbn, title=title, author=author, pages=pages, rating=rating,
-                                   list=List.get(List.name == list_name).list_id)
+                                   list=List.get(List.name == list_name).list_id, cover_image=cover_image)
         return new_book
     except PeeweeException as exception:
         logger.warning(
-            f"""Error while inserting book with params isbn: {isbn}, title: {title}, author: {author}, pages: {pages}
-            ,rating: {rating}, list: {list_name}, with message: {exception}""")
+            f"""Error while inserting book with params isbn: {isbn}, title: {title}, author: {author}, pages: {pages},
+            cover_image: {cover_image}, rating: {rating}, list: {list_name}, with message: {exception}""")
         msg_box.showerror("Error in BookController", exception)
 
 
