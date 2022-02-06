@@ -1,12 +1,14 @@
 import logging
 import tkinter as tk
 
-from Controllers import ListController
+from Controllers import AddListDialogController
 
 logger = logging.getLogger(__name__)
 
 
 class AddListDialog(tk.Toplevel):
+    controller = AddListDialogController
+
     def __init__(self, parent, lists, result):
         super().__init__(parent)
         self.lists = lists
@@ -37,7 +39,7 @@ class AddListDialog(tk.Toplevel):
         if list_name in self.lists.get():
             self.warning_label_text.set("List already exists")
         else:
-            result = ListController.add_list(list_name)
+            result = self.controller.add_list(list_name)
             if result is not None:
                 self.result.set(list_name)
                 self.destroy()

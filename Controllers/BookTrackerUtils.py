@@ -1,7 +1,8 @@
 import os
 
-from Definitions import ROOT_PATH
 import requests
+
+from Definitions import ROOT_PATH
 
 
 def build_rating(rating):
@@ -20,3 +21,10 @@ def save_image(url, isbn):
     with open(f"{ROOT_PATH}\\Images\\Covers\\{isbn}.jpg", 'wb') as handler:
         handler.write(img_data)
         return f"{isbn}.jpg"
+
+
+def is_not_none(value):
+    if value is None or value == "None":
+        return False
+    else:
+        return True

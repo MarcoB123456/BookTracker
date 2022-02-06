@@ -1,13 +1,14 @@
 import tkinter as tk
-from tkinter import messagebox as msg_box
 
-from Controllers import BookController, ListController
+from Controllers import ListFrameController
 from UI.Custom.JSONVar import JSONVar
 from UI.Dialogs.AddListDialog import AddListDialog
 from UI.Dialogs.UpdateListDialog import UpdateListDialog
 
 
 class ListFrame(tk.Frame):
+    controller = ListFrameController
+
     def __init__(self, parent, lists: JSONVar):
         super().__init__(parent)
         # TODO: Add option to move books
@@ -40,33 +41,31 @@ class ListFrame(tk.Frame):
             self.lists_list.insert(tk.END, item)
 
     def add_list(self):
-        self.result = tk.StringVar()
-        self.add_list_dialog = AddListDialog(self, self.lists, self.result)
-        self.wait_window(self.add_list_dialog)
-        if self.result.get() != "":
+        result = tk.StringVar()
+        add_list_dialog = AddListDialog(self, self.lists, result)
+        self.wait_window(add_list_dialog)
+        if result.get() != "":
             curr_list = self.lists.get()
-            curr_list.append(self.result.get())
+            curr_list.append(result.get())
             self.lists.set(curr_list)
 
     def remove_list(self):
         cur_selection = self.lists_list.curselection()
-        if len(cur_selection) != 0:
+        if cur_selection:
             list_name = self.lists_list.get(cur_selection)
-            if msg_box.askyesno("Remove list", f"Are you sure you wish to delete list with name: {list_name}"):
-                result = BookController.remove_all_books_from_list(list_name)
-                if result is not None:
-                    result = ListController.remove_list(list_name)
-                    if result is not None:
-                        curr_list = self.lists.get()
-                        curr_list.remove(list_name)
-                        self.lists.set(curr_list)
-                        self.master.event_generate("<<BookUpdate>>")
+            removed_rows = self.controller.remove_list(list_name)
+            if removed_rows:
+                curr_list = self.lists.get()
+                curr_list.remove(list_name)
+                self.lists.set(curr_list)
+                self.master.event_generate("<<BookUpdate>>")
 
     def update_list(self):
         cur_selection = self.lists_list.curselection()
-        if len(cur_selection) != 0:
+        if cur_selection:
             old_name = self.lists_list.get(cur_selection)
 
+            # Open dialog
             update_list_result = tk.StringVar()
             update_list_dialog = UpdateListDialog(self, self.lists, old_name, update_list_result)
             self.wait_window(update_list_dialog)

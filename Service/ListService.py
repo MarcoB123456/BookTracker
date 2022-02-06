@@ -23,7 +23,7 @@ def add_list(list_name):
     except PeeweeException as exception:
         logger.warning(
             f"""Error while adding list with name: {list_name} , with message: {exception}""")
-        msg_box.showerror("Error in ListController", exception)
+        msg_box.showerror("Error in ListService", exception)
 
 
 def update_list(new_name, old_name):
@@ -36,7 +36,7 @@ def update_list(new_name, old_name):
     except DoesNotExist as exception:
         logger.warning(
             f"Error while updating list with name: {old_name} to: {new_name}, with message: {exception}")
-        msg_box.showerror("Error in ListController", exception)
+        msg_box.showerror("Error in ListService", exception)
 
 
 def remove_list(list_name):
@@ -49,9 +49,14 @@ def remove_list(list_name):
     except DoesNotExist as exception:
         logger.warning(
             f"Error while deleting list with name: {list_name}, with message: {exception}")
-        msg_box.showerror("Error in ListController", exception)
+        msg_box.showerror("Error in ListService", exception)
 
 
 def get_list_by_name(name):
-    # TODO: Implement this
-    raise NotImplementedError("Not yet implemented")
+    try:
+        return List.get(List.name == name)
+    except DoesNotExist as exception:
+        logger.warning(
+            f"Error getting list with name: {name}, with message: {exception}")
+        msg_box.showerror("Error in ListService", exception)
+

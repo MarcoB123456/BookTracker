@@ -1,14 +1,15 @@
 import logging
 import tkinter as tk
-import tkinter.messagebox as msg_box
 
-from Controllers import BookController, BookTrackerUtils
+from Controllers import BookRightClickMenuController
 from UI.Dialogs.UpdateBookDialog import UpdateBookDialog
 
 logger = logging.getLogger(__name__)
 
 
 class BookRightClickMenu(tk.Menu):
+    controller = BookRightClickMenuController
+
     def __init__(self, parent, event, item, lists):
         super().__init__(parent, tearoff=0)
 
@@ -58,33 +59,22 @@ class BookRightClickMenu(tk.Menu):
         self.update()
 
     def delete_book(self):
-        logger.debug("Started deletion process for a book")
-        if msg_box.askyesno("Delete book", f"Are you sure you want to delete: {self.item['values'][1]}"):
-            logger.debug(
-                f"Confirmed deletion of book with isbn: {self.item['values'][0]}, title: {self.item['values'][1]}")
-            removed_rows = BookController.remove_book(self.item['values'][0])
-            if removed_rows is not None:
-                BookTrackerUtils.remove_image(self.item['values'][0])
-                self.master.event_generate("<<BookUpdate>>")
-
-        else:
-            logger.debug("Rejected deletion process")
+        if self.controller.delete_book(self.item['values'][0], self.item['values'][1]):
+            self.master.event_generate("<<BookUpdate>>")
 
     def move_book_to_list(self, list_name):
-        # TODO: Add confirm window if already in a list. Not sure if this is actually needed
-        BookController.move_book_to_list(self.item['values'][0], list_name)
-        self.master.event_generate("<<BookUpdate>>")
+        if self.controller.move_book_to_list(self.item['values'][0], list_name) > 0:
+            self.master.event_generate("<<BookUpdate>>")
 
     def remove_book_from_list(self):
-        BookController.remove_book_from_list(self.item['values'][0])
-        self.master.event_generate("<<BookUpdate>>")
+        if self.controller.move_book_to_list(self.item['values'][0], None) > 0:
+            self.master.event_generate("<<BookUpdate>>")
 
     def update_rating(self, rating):
-        BookController.update_book_rating(self.item['values'][0], rating)
-        self.master.event_generate("<<BookUpdate>>")
+        if self.controller.update_rating(self.item['values'][0], rating) > 0:
+            self.master.event_generate("<<BookUpdate>>")
 
     def update_book(self):
         update_book_dialog = UpdateBookDialog(self.master, self.item['values'][0], self.lists)
         self.wait_window(update_book_dialog)
         self.master.event_generate("<<BookUpdate>>")
-

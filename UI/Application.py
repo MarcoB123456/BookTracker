@@ -1,10 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 
-from Controllers import BookController, ListController
+from Controllers import ApplicationController
 from Controllers.BookTrackerUtils import build_rating
 from Models.Book import Book
-from Models.Filter import Filter
 from UI.Custom.JSONVar import JSONVar
 from UI.Dialogs.AddBookDialog import AddBookDialog
 from UI.Widgets.BookRightClickMenu import BookRightClickMenu
@@ -13,6 +12,8 @@ from UI.Widgets.SearchFrame import SearchFrame
 
 
 class Application(tk.Tk):
+    controller = ApplicationController
+
     def __init__(self):
         super().__init__()
         self.tk.call("source", "sun-valley.tcl")
@@ -79,20 +80,19 @@ class Application(tk.Tk):
         self.mainloop()
 
     def find_all_books(self):
-        self.books = BookController.get_all_books()
+        self.books = self.controller.get_all_books()
 
     def find_all_books_with_filter(self, event=None):
         if event is None:
-            self.books = BookController.get_all_books()
+            self.books = self.controller.get_all_books()
         else:
-            book_filter = Filter(self.search_frame.list_combobox.get())
-            self.books = BookController.get_books_by_filter(book_filter)
+            self.books = self.controller.get_books_by_filter(self.search_frame.get_filter())
         self.populate_book_list()
 
     def populate_book_list(self):
         self.book_list.delete(*self.book_list.get_children())
         for book in self.books:
-            start_date, end_date = self.hasOneReadMinimum(book.get_readings())
+            start_date, end_date = self.controller.has_one_read_minimum(book.get_readings())
             row_id = self.add_book_list_item(book, start_date, end_date)
             if len(book.get_readings()) > 1:
                 readings = book.get_readings()
@@ -103,26 +103,16 @@ class Application(tk.Tk):
     def add_book_list_item(self, book, start_date='', end_date=''):
         return self.book_list.insert(parent='', index=tk.END, values=(
             book.ISBN, book.title, book.author, book.pages, build_rating(book.rating), start_date,
-            end_date), tags=(self.listNotNone(book),))
+            end_date), tags=(self.controller.list_not_none(book),))
 
     def add_book_child_item(self, book, start_date, end_date, row_id):
         return self.book_list.insert(parent=row_id, index=tk.END, values=('', '', '', '', '', start_date, end_date),
-                                     tags=(self.listNotNone(book),))
+                                     tags=(self.controller.list_not_none(book),))
 
-    def listNotNone(self, book):
-        if book.list is None:
-            return "None"
-        else:
-            return book.list.name
 
-    def hasOneReadMinimum(self, readings):
-        if len(readings) > 0:
-            return readings[0].start_date, readings[0].end_date
-        else:
-            return '', ''
 
     def find_all_lists(self):
-        all_lists = ListController.get_all_lists()
+        all_lists = self.controller.get_all_lists()
         curr_lists = self.lists.get()
 
         for item in all_lists:

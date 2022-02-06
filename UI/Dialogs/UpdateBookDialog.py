@@ -1,17 +1,14 @@
 import logging
-import os
-import shutil
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
 
 from PIL import ImageTk, Image
 from tkcalendar import DateEntry
 
-from Controllers import BookController, ReadController
-from Controllers.BookTrackerUtils import build_rating
+from Controllers import UpdateBookDialogController
+from Controllers.BookTrackerUtils import build_rating, is_not_none
 from Definitions import ROOT_PATH
 from Models.Book import Book
-from Models.List import List
 from UI.Custom.LabelInput import LabelInput
 
 logger = logging.getLogger(__name__)
@@ -20,6 +17,7 @@ logger = logging.getLogger(__name__)
 class UpdateBookDialog(tk.Toplevel):
     height = 800
     width = 600
+    controller = UpdateBookDialogController
 
     def __init__(self, parent, isbn, lists):
         super().__init__(parent)
@@ -28,7 +26,7 @@ class UpdateBookDialog(tk.Toplevel):
         self.title("Update book")
         self.geometry(f"{self.width}x{self.height}")
 
-        self.book: Book = self.get_book(isbn)
+        self.book: Book = self.controller.get_book(isbn)
         self.lists = lists
 
         # Cover image
@@ -106,44 +104,41 @@ class UpdateBookDialog(tk.Toplevel):
 
     def _update_reading(self):
         idx = self.reading_list.curselection()
-        if len(idx) != 0:
+        if idx:
             self.reading_list.delete(idx)
             self.reading_list.insert(idx,
                                      f"{self.reading_start_date_entry.get_date().strftime('%d-%m-%Y')} - {self.reading_end_date_entry.get_date().strftime('%d-%m-%Y')}")
 
     def _remove_reading(self):
         idx = self.reading_list.curselection()
-        if len(idx) != 0:
+        if idx:
             self.reading_list.delete(idx)
 
     def _on_start_date_select(self, *_):
         if self.reading_end_date_entry.get_date() <= self.reading_start_date_entry.get_date():
             self.reading_end_date_entry.set_date(self.reading_start_date_entry.get_date())
 
-    def _on_reading_select(self, event):
+    def _on_reading_select(self, *_):
         idx = self.reading_list.curselection()
-        if len(idx) != 0:
+        if idx:
             item = self.reading_list.get(idx)
+            start_date, end_date = item.split(" - ")
 
-            self.reading_start_date_entry.set_date(item.split(" - ")[0])
-            self.reading_end_date_entry.set_date(item.split(" - ")[-1])
+            self.reading_start_date_entry.set_date(start_date)
+            if is_not_none(end_date):
+                self.reading_end_date_entry.set_date(end_date)
 
     def _save_book(self):
-        self.book.title = self.title_input_value.get()
-        self.book.author = self.author_input_value.get()
-        self.book.pages = self.pages_input_value.get()
-        if self.rating_input.input.current() == 0:
-            self.book.rating = None
-        else:
-            self.book.rating = self.rating_input.input.current()
-        self.book.list = List(name=self.list_input_value.get())
+        title = self.title_input_value.get()
+        author = self.author_input_value.get()
+        pages = self.pages_input_value.get()
+        rating_index = self.rating_input.input.current()
+        list_name = self.list_input_value.get()
+        reading_list = self.reading_list.get(0, tk.END)
 
-        deleted_rows = ReadController.remove_all_by_book_id(self.book.book_id)
-        if deleted_rows is not None:
-            for reading in self.reading_list.get(0, tk.END):
-                start_date, end_date = reading.split(" - ")
-                ReadController.add_reading(start_date, end_date, self.book.book_id)
-        updated_rows = BookController.update_book(self.book)
+        updated_rows = self.controller.save_book(self.book.book_id, title, author, pages, rating_index, list_name,
+                                                 reading_list)
+
         if updated_rows is not None:
             self.destroy()
 
@@ -169,20 +164,6 @@ class UpdateBookDialog(tk.Toplevel):
         self.img = ImageTk.PhotoImage(self.resized_img)
 
     def _upload_cover_file(self):
-        src_path = filedialog.askopenfilename(filetypes=(("Image files", "*.jpg;*.jpeg;*.png"), ("All files", "*.*")))
-        filename = src_path.split("/")[-1]
-        logger.debug(f"Attempting to copy file: {src_path} to Covers directory")
-        if not os.path.isfile(f"{ROOT_PATH}\\Images\\Covers\\{filename}"):
-            shutil.copy(src_path, ROOT_PATH + "\\Images\\Covers")
-            self.book.cover_image = filename
-            self._load_cover_image()
-            self.image_label.configure(image=self.img)
-        else:
-            messagebox.showerror("File already exists", f"Cover image with name: {filename} already exists.")
-
-    def get_book(self, isbn):
-        book = BookController.get_book_by_isbn(isbn)
-        if book is None:
-            self.destroy()
-        else:
-            return book
+        self.book.cover_image = self.controller.upload_cover_image()
+        self._load_cover_image()
+        self.image_label.configure(image=self.img)

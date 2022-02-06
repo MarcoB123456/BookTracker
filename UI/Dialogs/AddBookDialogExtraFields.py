@@ -47,11 +47,17 @@ class AddBookDialogExtraFields(tk.Frame):
         else:
             self.rating_input.place_forget()
 
-    def get_start_date(self):
-        self.start_date_input.input.get_date().strftime('%d-%m-%Y')
+    def get_start_date(self, list_):
+        if list_ == "Finished" or list_ == "Reading":
+            return self.start_date_input.input.get_date().strftime('%d-%m-%Y')
 
-    def get_end_date(self):
-        self.end_date_input.input.get_date().strftime('%d-%m-%Y')
+    def get_end_date(self, list_):
+        if list_ != "Finished":
+            return None
+        return self.end_date_input.input.get_date().strftime('%d-%m-%Y')
 
-    def get_rating_index(self):
-        return self.rating_input.input.current()
+    def get_rating_index(self, list_):
+        rating = self.rating_input.input.current()
+        if rating == 0 or list_ == "Reading":
+            return None
+        return rating

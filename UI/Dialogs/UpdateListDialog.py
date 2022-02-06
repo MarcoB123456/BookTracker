@@ -1,12 +1,14 @@
 import logging
 import tkinter as tk
 
-from Controllers import ListController
+from Controllers import UpdateListDialogController
 
 logger = logging.getLogger(__name__)
 
 
 class UpdateListDialog(tk.Toplevel):
+    controller = UpdateListDialogController
+
     def __init__(self, parent, lists, old_name, result):
         super().__init__(parent)
         self.lists = lists
@@ -37,10 +39,10 @@ class UpdateListDialog(tk.Toplevel):
         # Check if list already exists
         if new_name == self.old_name:
             self.warning_label_text.set("Name cannot be the same")
-        if new_name in self.lists.get():
+        elif new_name in self.lists.get():
             self.warning_label_text.set("List already exists")
         else:
-            result = ListController.update_list(new_name, self.old_name)
+            result = self.controller.update_list(new_name, self.old_name)
             if result is not None:
                 self.result.set(new_name)
                 self.destroy()
