@@ -4,12 +4,12 @@ import shutil
 from tkinter import filedialog, messagebox
 
 from Definitions import ROOT_PATH
-from Service import ReadService, BookService, ListService
+from Service import ReadService, BookService, ListService, AuthorService
 
 logger = logging.getLogger(__name__)
 
 
-def save_book(book_id, title, author, pages, rating, list_name, reading_list):
+def save_book(book_id, title, author_list, pages, rating, list_name, reading_list):
     # Unsure how to update reading list so just remove all of them first
     ReadService.remove_all_by_book_id(book_id)
     # Add all readings
@@ -17,14 +17,24 @@ def save_book(book_id, title, author, pages, rating, list_name, reading_list):
         start_date, end_date = reading.split(" - ")
         ReadService.add_reading(start_date, end_date, book_id)
 
-    list_ = ListService.get_list_by_name(list_name)
+    # Unsure how to update author list so just remove all of them first
+    BookService.remove_all_authors_from_book(book_id)
+    # Add all readings
+    for author in author_list:
+        author = AuthorService.get_or_create_author(author)
+        BookService.add_author_to_book_with_id(book_id, author[0])
+
+    if list_name == "None":
+        list_ = None
+    else:
+        list_ = ListService.get_list_by_name(list_name)
 
     # An index of zero means no rating.
     if rating == 0:
         rating = None
 
     # Return amount of updated rows
-    return BookService.update_book(book_id, title, author, pages, rating, list_)
+    return BookService.update_book(book_id, title, pages, rating, list_)
 
 
 def upload_cover_image():

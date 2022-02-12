@@ -1,6 +1,7 @@
 import logging
 from os.path import exists
 
+from Models.Author import Author
 from Models.Book import Book
 from Models.List import List
 from Models.Peewee import db
@@ -18,7 +19,9 @@ def log_init():
 
 def db_init():
     if not exists("BookTracker.db"):
-        db.create_tables([List, Book, Read])
+        BookAuthor = Book.authors.get_through_model()
+
+        db.create_tables([List, Book, Read, Author, BookAuthor])
 
         List.create(name="Reading")
         List.create(name="To-read")

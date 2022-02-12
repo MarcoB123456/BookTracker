@@ -42,27 +42,22 @@ class UpdateBookDialog(tk.Toplevel):
         self.title_input = LabelInput(self, "Title:", self.title_input_value)
         self.title_input.place(relx=0.40, rely=0.02, relheight=0.1, relwidth=0.5)
 
-        # Author
-        self.author_input_value = tk.StringVar()
-        self.author_input = LabelInput(self, "Author:", self.author_input_value)
-        self.author_input.place(relx=0.4, rely=0.12, relheight=0.1, relwidth=0.5)
-
         # Pages
         self.pages_input_value = tk.StringVar()
         self.pages_input = LabelInput(self, "Pages:", self.pages_input_value)
-        self.pages_input.place(relx=0.4, rely=0.22, relheight=0.1, relwidth=0.15)
+        self.pages_input.place(relx=0.4, rely=0.12, relheight=0.1, relwidth=0.15)
 
         # List
         self.list_input_value = tk.StringVar()
         self.list_input = LabelInput(self, "List:", self.list_input_value, ttk.Combobox,
                                      input_args={"values": self.lists.get()})
-        self.list_input.place(relx=0.6, rely=0.22, relheight=0.1, relwidth=0.30)
+        self.list_input.place(relx=0.6, rely=0.12, relheight=0.1, relwidth=0.30)
 
         # Rating
         self.rating_input_value = tk.StringVar()
         self.rating_input = LabelInput(self, "Rating:", self.rating_input_value, ttk.Combobox,
                                        input_args={"values": ["", "★☆☆☆☆", "★★☆☆☆", "★★★☆☆", "★★★★☆", "★★★★★"]})
-        self.rating_input.place(relx=0.40, rely=0.32, relheight=0.1, relwidth=0.20)
+        self.rating_input.place(relx=0.40, rely=0.22, relheight=0.1, relwidth=0.20)
 
         # Reading
         self.reading_list_label = tk.Label(self, text="Readings:", justify=tk.LEFT)
@@ -88,6 +83,27 @@ class UpdateBookDialog(tk.Toplevel):
         self.remove_reading_button = ttk.Button(self, text="Remove", command=self._remove_reading)
         self.remove_reading_button.place(relx=0.26, rely=0.93, relheight=0.04, relwidth=0.12)
 
+        # Author
+        self.author_list_label = tk.Label(self, text="Authors:", justify=tk.LEFT)
+        self.author_list_label.place(relx=0.40, rely=0.43, relheight=0.05, relwidth=0.11)
+
+        self.author_list = tk.Listbox(self, selectbackground="gray")
+        self.author_list.place(relx=0.40, rely=0.48, relheight=0.3, relwidth=0.35)
+        self.author_list.bind('<<ListboxSelect>>', self._on_author_select)
+
+        self.author_entry_value = tk.StringVar()
+        self.author_start_entry = ttk.Entry(self, textvariable=self.author_entry_value)
+        self.author_start_entry.place(relx=0.40, rely=0.78, relheight=0.05, relwidth=0.35)
+
+        self.add_author_button = ttk.Button(self, text="Add", command=self._add_author)
+        self.add_author_button.place(relx=0.40, rely=0.83, relheight=0.04, relwidth=0.11)
+
+        self.update_author_button = ttk.Button(self, text="Update", command=self._update_author)
+        self.update_author_button.place(relx=0.51, rely=0.83, relheight=0.04, relwidth=0.12)
+
+        self.remove_author_button = ttk.Button(self, text="Remove", command=self._remove_author)
+        self.remove_author_button.place(relx=0.63, rely=0.83, relheight=0.04, relwidth=0.12)
+
         # Save button
         self.save_button = tk.Button(self, text="Save", command=self._save_book)
         self.save_button.place(relx=0.83, rely=0.92, relheight=0.06, relwidth=0.15)
@@ -97,6 +113,26 @@ class UpdateBookDialog(tk.Toplevel):
         self.cancel_button.place(relx=0.66, rely=0.92, relheight=0.06, relwidth=0.15)
 
         self._fill_fields()
+
+    def _add_author(self):
+        self.author_list.insert(tk.END, self.author_entry_value.get())
+
+    def _update_author(self):
+        idx = self.author_list.curselection()
+        if idx:
+            self.author_list.delete(idx)
+            self.author_list.insert(idx, self.author_entry_value.get())
+
+    def _remove_author(self):
+        idx = self.author_list.curselection()
+        if idx:
+            self.author_list.delete(idx)
+
+    def _on_author_select(self, *_):
+        idx = self.author_list.curselection()
+        if idx:
+            item = self.author_list.get(idx)
+            self.author_entry_value.set(item)
 
     def _add_reading(self):
         self.reading_list.insert(tk.END,
@@ -130,13 +166,13 @@ class UpdateBookDialog(tk.Toplevel):
 
     def _save_book(self):
         title = self.title_input_value.get()
-        author = self.author_input_value.get()
         pages = self.pages_input_value.get()
         rating_index = self.rating_input.input.current()
         list_name = self.list_input_value.get()
         reading_list = self.reading_list.get(0, tk.END)
+        author_list = self.author_list.get(0, tk.END)
 
-        updated_rows = self.controller.save_book(self.book.book_id, title, author, pages, rating_index, list_name,
+        updated_rows = self.controller.save_book(self.book.book_id, title, author_list, pages, rating_index, list_name,
                                                  reading_list)
 
         if updated_rows is not None:
@@ -147,7 +183,6 @@ class UpdateBookDialog(tk.Toplevel):
 
     def _fill_fields(self):
         self.title_input_value.set(self.book.title)
-        self.author_input_value.set(self.book.author)
         self.pages_input_value.set(self.book.pages)
         self.rating_input_value.set(build_rating(self.book.rating))
         if self.book.list is not None:
@@ -157,6 +192,9 @@ class UpdateBookDialog(tk.Toplevel):
 
         for read in self.book.get_readings():
             self.reading_list.insert(tk.END, f"{read.start_date} - {read.end_date}")
+
+        for author in self.book.get_authors():
+            self.author_list.insert(tk.END, author.name)
 
     def _load_cover_image(self):
         self.original_img = Image.open(f"{ROOT_PATH}/Images/Covers/{self.book.cover_image}")
