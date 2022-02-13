@@ -47,6 +47,17 @@ def get_book_by_isbn(isbn):
         msg_box.showerror("Error in BookService", exception)
 
 
+def get_book_by_isbn_and_title(isbn, title):
+    logger.info("Querying book by isbn and title")
+
+    try:
+        book = Book.get(Book.ISBN == isbn, Book.title == title)
+        return book
+    except DoesNotExist as exception:
+        logger.debug(f"Book with isbn: {isbn} and title: {title} does not exist")
+        msg_box.showerror("Error in BookService", exception)
+
+
 def get_books_by_title(title):
     # TODO: Implement this
     raise NotImplementedError("Not yet implemented")
@@ -114,11 +125,12 @@ def update_book_rating(isbn, rating):
         msg_box.showerror("Error in BookService", exception)
 
 
-def update_book(book_id, title, pages, rating, list_: List):
+def update_book(book_id, isbn, title, pages, rating, list_: List):
     logger.info(f"Updating book")
     try:
         old_book: Book = Book.get_by_id(book_id)
 
+        old_book.ISBN = isbn
         old_book.title = title
         old_book.pages = pages
         old_book.list = list_

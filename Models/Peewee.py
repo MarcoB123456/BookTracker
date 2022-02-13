@@ -1,6 +1,7 @@
 from peewee import Model, SqliteDatabase
+from Definitions import ROOT_PATH
 
-db = SqliteDatabase("BookTracker.db")
+db = SqliteDatabase(f"{ROOT_PATH}/BookTracker.db")
 
 
 class Peewee(Model):

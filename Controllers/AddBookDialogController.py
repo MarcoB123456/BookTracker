@@ -33,8 +33,9 @@ def add_book(isbn, list_name, rating, start_date, end_date, warning_label):
     pages = json_result['items'][0]['volumeInfo']['pageCount']
 
     # Save cover image
-    cover_image = BookTrackerUtils.save_image(
-        json_result['items'][0]['volumeInfo']['imageLinks']['thumbnail'], isbn)
+    if "imageLinks" in json_result['items'][0]['volumeInfo']:
+        cover_image = BookTrackerUtils.save_image(
+            json_result['items'][0]['volumeInfo']['imageLinks']['thumbnail'], isbn)
 
     # Add book to the database
     new_book = BookService.add_book(isbn, title, pages, cover_image, rating, list_name)

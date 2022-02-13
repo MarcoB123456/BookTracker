@@ -4,6 +4,7 @@ from Controllers import ApplicationController
 from Models.Book import Book
 from UI.Custom.JSONVar import JSONVar
 from UI.Dialogs.AddBookDialog import AddBookDialog
+from UI.Dialogs.SettingsDialog import SettingsDialog
 from UI.Widgets.BookTable import BookTable
 from UI.Widgets.ListFrame import ListFrame
 from UI.Widgets.SearchFrame import SearchFrame
@@ -32,7 +33,7 @@ class Application(tk.Tk):
         self.lists.set(["None"])
         self.find_all_lists()
 
-        # Build list filter
+        # List filter
         self.left_frame = tk.Frame(self)
         self.left_frame.place(relx=0, rely=0, relwidth=0.2, relheight=0.8)
 
@@ -43,18 +44,23 @@ class Application(tk.Tk):
         self.search_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
         self.books_table = BookTable(self, self.books, self.lists)
-        self.books_table.place(relx=0.2, rely=0, relheight=1, relwidth=0.8)
+        self.books_table.place(relx=0.2, rely=0, relheight=0.94, relwidth=0.8)
 
-        # Switch frames buttons
+        # Switch frames
         self.search_frame_button = tk.Button(self, text="Search", command=self.search_frame.show)
         self.search_frame_button.place(relx=0, rely=0.9, relheight=0.1, relwidth=0.1)
 
         self.list_frame_button = tk.Button(self, text="List", command=self.list_frame.show)
         self.list_frame_button.place(relx=0.1, rely=0.9, relheight=0.1, relwidth=0.1)
 
-        # Build add button
+        # Add book
         self.add_book_button = tk.Button(self, text="+", font="Helvetica 20 bold", command=self.open_add_book_dialog)
-        self.add_book_button.place(relx=0.2, rely=0.93, relheight=0.07, relwidth=0.07)
+        self.add_book_button.place(relx=0.2, rely=0.94, relheight=0.06, relwidth=0.03)
+
+        # Open settings
+        self.settings_button = tk.Button(self, text="⚙", font="Helvetica 14 bold", command=self.open_settings_dialog)
+        self.settings_button.place(relx=0.98, rely=0.95, relheight=0.05, relwidth=0.02)
+
         self.mainloop()
 
     def find_all_books(self):
@@ -75,6 +81,9 @@ class Application(tk.Tk):
             curr_lists.append(item.name)
 
         self.lists.set(curr_lists)
+
+    def open_settings_dialog(self):
+        settings_dialog = SettingsDialog(self)
 
     def open_add_book_dialog(self):
         result_book = JSONVar(self)

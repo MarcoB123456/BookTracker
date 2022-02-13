@@ -9,7 +9,7 @@ from Service import ReadService, BookService, ListService, AuthorService
 logger = logging.getLogger(__name__)
 
 
-def save_book(book_id, title, author_list, pages, rating, list_name, reading_list):
+def save_book(book_id, isbn, title, author_list, pages, rating, list_name, reading_list):
     # Unsure how to update reading list so just remove all of them first
     ReadService.remove_all_by_book_id(book_id)
     # Add all readings
@@ -29,12 +29,8 @@ def save_book(book_id, title, author_list, pages, rating, list_name, reading_lis
     else:
         list_ = ListService.get_list_by_name(list_name)
 
-    # An index of zero means no rating.
-    if rating == 0:
-        rating = None
-
     # Return amount of updated rows
-    return BookService.update_book(book_id, title, pages, rating, list_)
+    return BookService.update_book(book_id, isbn, title, pages, rating, list_)
 
 
 def upload_cover_image():
@@ -49,5 +45,5 @@ def upload_cover_image():
     return filename
 
 
-def get_book(isbn):
-    return BookService.get_book_by_isbn(isbn)
+def get_book(isbn, title):
+    return BookService.get_book_by_isbn_and_title(isbn, title)

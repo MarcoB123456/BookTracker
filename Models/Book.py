@@ -8,7 +8,7 @@ from Models.Peewee import Peewee
 
 class Book(Peewee):
     book_id = AutoField(primary_key=True)
-    ISBN = TextField(unique=True)
+    ISBN = TextField()
     title = TextField()
     authors = ManyToManyField(Author, backref="books")
     pages = IntegerField(null=True)

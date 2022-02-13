@@ -75,6 +75,6 @@ class BookRightClickMenu(tk.Menu):
             self.master.event_generate("<<BookUpdate>>")
 
     def update_book(self):
-        update_book_dialog = UpdateBookDialog(self.master, self.item['values'][0], self.lists)
+        update_book_dialog = UpdateBookDialog(self.master, self.item['values'][0], self.item['values'][1], self.lists)
         self.wait_window(update_book_dialog)
         self.master.event_generate("<<BookUpdate>>")

@@ -19,14 +19,14 @@ class UpdateBookDialog(tk.Toplevel):
     width = 600
     controller = UpdateBookDialogController
 
-    def __init__(self, parent, isbn, lists):
+    def __init__(self, parent, isbn, title, lists):
         super().__init__(parent)
         logger.debug("Initializing UpdateBookDialog")
 
         self.title("Update book")
         self.geometry(f"{self.width}x{self.height}")
 
-        self.book: Book = self.controller.get_book(isbn)
+        self.book: Book = self.controller.get_book(isbn, title)
         self.lists = lists
 
         # Cover image
@@ -37,27 +37,32 @@ class UpdateBookDialog(tk.Toplevel):
         self.image_button = tk.Button(self, text="⤒", command=self._upload_cover_file)
         self.image_button.place_configure(relx=0.325, rely=0.38, relheight=0.04, relwidth=0.05)
 
+        # ISBN
+        self.isbn_input_value = tk.StringVar()
+        self.isbn_input = LabelInput(self, "ISBN:", self.isbn_input_value)
+        self.isbn_input.place(relx=0.40, rely=0.02, relheight=0.1, relwidth=0.5)
+
         # Title
         self.title_input_value = tk.StringVar()
         self.title_input = LabelInput(self, "Title:", self.title_input_value)
-        self.title_input.place(relx=0.40, rely=0.02, relheight=0.1, relwidth=0.5)
+        self.title_input.place(relx=0.40, rely=0.12, relheight=0.1, relwidth=0.5)
 
         # Pages
         self.pages_input_value = tk.StringVar()
         self.pages_input = LabelInput(self, "Pages:", self.pages_input_value)
-        self.pages_input.place(relx=0.4, rely=0.12, relheight=0.1, relwidth=0.15)
+        self.pages_input.place(relx=0.4, rely=0.22, relheight=0.1, relwidth=0.15)
 
         # List
         self.list_input_value = tk.StringVar()
         self.list_input = LabelInput(self, "List:", self.list_input_value, ttk.Combobox,
                                      input_args={"values": self.lists.get()})
-        self.list_input.place(relx=0.6, rely=0.12, relheight=0.1, relwidth=0.30)
+        self.list_input.place(relx=0.6, rely=0.22, relheight=0.1, relwidth=0.30)
 
         # Rating
         self.rating_input_value = tk.StringVar()
         self.rating_input = LabelInput(self, "Rating:", self.rating_input_value, ttk.Combobox,
                                        input_args={"values": ["", "★☆☆☆☆", "★★☆☆☆", "★★★☆☆", "★★★★☆", "★★★★★"]})
-        self.rating_input.place(relx=0.40, rely=0.22, relheight=0.1, relwidth=0.20)
+        self.rating_input.place(relx=0.40, rely=0.32, relheight=0.1, relwidth=0.20)
 
         # Reading
         self.reading_list_label = tk.Label(self, text="Readings:", justify=tk.LEFT)
@@ -165,14 +170,15 @@ class UpdateBookDialog(tk.Toplevel):
                 self.reading_end_date_entry.set_date(end_date)
 
     def _save_book(self):
+        isbn = self.isbn_input_value.get()
         title = self.title_input_value.get()
         pages = self.pages_input_value.get()
-        rating_index = self.rating_input.input.current()
+        rating = self.rating_input.input.current()
         list_name = self.list_input_value.get()
         reading_list = self.reading_list.get(0, tk.END)
         author_list = self.author_list.get(0, tk.END)
 
-        updated_rows = self.controller.save_book(self.book.book_id, title, author_list, pages, rating_index, list_name,
+        updated_rows = self.controller.save_book(self.book.book_id, isbn, title, author_list, pages, rating, list_name,
                                                  reading_list)
 
         if updated_rows is not None:
@@ -182,6 +188,7 @@ class UpdateBookDialog(tk.Toplevel):
         self.destroy()
 
     def _fill_fields(self):
+        self.isbn_input_value.set(self.book.ISBN)
         self.title_input_value.set(self.book.title)
         self.pages_input_value.set(self.book.pages)
         self.rating_input_value.set(build_rating(self.book.rating))
@@ -197,7 +204,7 @@ class UpdateBookDialog(tk.Toplevel):
             self.author_list.insert(tk.END, author.name)
 
     def _load_cover_image(self):
-        self.original_img = Image.open(f"{ROOT_PATH}/Images/Covers/{self.book.cover_image}")
+        self.original_img = Image.open(f"{ROOT_PATH}\\Images\\Covers\\{self.book.cover_image}")
         self.resized_img = self.original_img.resize((int(self.width * 0.35), int(self.height * 0.4)), Image.ANTIALIAS)
         self.img = ImageTk.PhotoImage(self.resized_img)
 
