@@ -20,6 +20,7 @@ class Application(tk.Tk):
         self.tk.call("set_theme", "dark")
         self.title("BookTracker")
         self.geometry(f"{int(self.winfo_screenwidth() * 0.8)}x{int(self.winfo_screenheight() * 0.6)}")
+        self.resizable(width=False, height=False)
 
         self.protocol("WM_DELETE_WINDOW", self.close_window)
 

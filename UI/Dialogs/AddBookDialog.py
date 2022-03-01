@@ -20,6 +20,7 @@ class AddBookDialog(tk.Toplevel):
 
         self.title("Add book")
         self.geometry(f"{self.width}x{self.height}")
+        self.resizable(width=False, height=False)
 
         self.lists = lists
 

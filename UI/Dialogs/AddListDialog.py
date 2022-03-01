@@ -18,6 +18,7 @@ class AddListDialog(tk.Toplevel):
 
         self.title("Add List")
         self.geometry("250x150")
+        self.resizable(width=False, height=False)
 
         self.list_label = tk.Label(self, text="List name:", font="Helvetica 16 bold")
         self.list_label.place(relx=0.1, rely=0.1, relheight=0.2, relwidth=0.5)

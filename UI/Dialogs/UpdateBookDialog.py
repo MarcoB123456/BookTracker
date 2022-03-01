@@ -25,6 +25,7 @@ class UpdateBookDialog(tk.Toplevel):
 
         self.title("Update book")
         self.geometry(f"{self.width}x{self.height}")
+        self.resizable(width=False, height=False)
 
         self.book: Book = self.controller.get_book(isbn, title)
         self.lists = lists

@@ -18,6 +18,7 @@ class SettingsDialog(tk.Toplevel):
 
         self.title("Settings")
         self.geometry(f"{self.width}x{self.height}")
+        self.resizable(width=False, height=False)
 
         self.import_label = tk.Label(self, text="Import", font="Helvetica 16 bold underline")
         self.import_label.place(relx=0.1, rely=0.05, relheight=0.1, relwidth=0.3)
