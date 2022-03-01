@@ -60,21 +60,21 @@ class BookRightClickMenu(tk.Menu):
 
     def delete_book(self):
         if self.controller.delete_book(self.item['values'][0], self.item['values'][1]):
-            self.master.event_generate("<<BookUpdate>>")
+            self.master.event_generate("<<PaginationUpdate>>")
 
     def move_book_to_list(self, list_name):
         if self.controller.move_book_to_list(self.item['values'][0], list_name) > 0:
-            self.master.event_generate("<<BookUpdate>>")
+            self.master.event_generate("<<PaginationUpdate>>")
 
     def remove_book_from_list(self):
         if self.controller.move_book_to_list(self.item['values'][0], None) > 0:
-            self.master.event_generate("<<BookUpdate>>")
+            self.master.event_generate("<<PaginationUpdate>>")
 
     def update_rating(self, rating):
         if self.controller.update_rating(self.item['values'][0], rating) > 0:
-            self.master.event_generate("<<BookUpdate>>")
+            self.master.event_generate("<<PaginationUpdate>>")
 
     def update_book(self):
         update_book_dialog = UpdateBookDialog(self.master, self.item['values'][0], self.item['values'][1], self.lists)
         self.wait_window(update_book_dialog)
-        self.master.event_generate("<<BookUpdate>>")
+        self.master.event_generate("<<PaginationUpdate>>")

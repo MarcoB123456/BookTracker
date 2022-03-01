@@ -1,5 +1,5 @@
 import logging
-import os
+from pathlib import Path
 import shutil
 from tkinter import filedialog, messagebox
 
@@ -36,7 +36,7 @@ def save_book(book_id, isbn, title, author_list, pages, rating, list_name, readi
 def upload_cover_image():
     src_path = filedialog.askopenfilename(filetypes=(("Image files", "*.jpg;*.jpeg;*.png"), ("All files", "*.*")))
     filename = src_path.split("/")[-1]
-    if not os.path.isfile(f"{ROOT_PATH}\\Images\\Covers\\{filename}"):
+    if not Path(f"{ROOT_PATH}\\Images\\Covers\\{filename}").is_file():
         messagebox.showerror("File already exists", f"Cover image with name: {filename} already exists.")
         return None
 

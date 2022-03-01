@@ -10,11 +10,15 @@ from Models.List import List
 logger = logging.getLogger(__name__)
 
 
-def get_all_books():
+def get_all_books_by_page(page):
     logger.info("Querying all books")
-    query = Book.select()
+    query = Book.select().paginate(page, paginate_by=20)
     result = [book for book in query]
     return result
+
+
+def get_book_count():
+    return Book.select().count()
 
 
 def get_books_by_list(list_name):
@@ -24,7 +28,7 @@ def get_books_by_list(list_name):
     return result
 
 
-def get_books_by_filter(filter_):
+def get_books_by_filter(filter_, page):
     logger.info("Querying books by filter")
     logger.debug(f"Filter used is: {filter_}")
 
@@ -32,8 +36,12 @@ def get_books_by_filter(filter_):
 
     if filter_.list_name is not None and filter_.list_name != "None":
         query = query.join(List).where(List.name == filter_.list_name)
+
+    max_books = query.count()
+
+    query = query.paginate(page, paginate_by=20)
     result = [book for book in query]
-    return result
+    return result, max_books
 
 
 def get_book_by_isbn(isbn):
@@ -98,10 +106,10 @@ def book_exists(isbn):
         return False
 
 
-def remove_book(isbn):
+def remove_book(isbn, title):
     logger.info(f"Removing book with isbn: {isbn} from the database")
     try:
-        book = Book.get(Book.ISBN == isbn)
+        book = Book.get(Book.ISBN == isbn, Book.title == title)
         # Returns amount of deleted rows
         removed_rows = book.delete_instance()
         logger.debug(f"Removed {removed_rows} amount of rows")

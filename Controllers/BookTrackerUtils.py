@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import requests
 
@@ -13,7 +13,7 @@ def build_rating(rating):
 
 
 def remove_image(isbn):
-    os.remove(f"{ROOT_PATH}\\Images\\Covers\\{isbn}.jpg")
+    Path(f"{ROOT_PATH}\\Images\\Covers\\{isbn}.jpg").unlink()
 
 
 def save_image(url, isbn):

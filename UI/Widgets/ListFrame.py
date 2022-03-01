@@ -58,7 +58,7 @@ class ListFrame(tk.Frame):
                 curr_list = self.lists.get()
                 curr_list.remove(list_name)
                 self.lists.set(curr_list)
-                self.master.event_generate("<<BookUpdate>>")
+                self.master.event_generate("<<PaginationUpdate>>")
 
     def update_list(self):
         cur_selection = self.lists_list.curselection()
@@ -74,7 +74,7 @@ class ListFrame(tk.Frame):
                 old_list = self.lists.get()
                 old_list[idx] = update_list_result.get()
                 self.lists.set(old_list)
-                self.master.event_generate("<<BookUpdate>>")
+                self.master.event_generate("<<PaginationUpdate>>")
 
     def show(self):
         self.tkraise()

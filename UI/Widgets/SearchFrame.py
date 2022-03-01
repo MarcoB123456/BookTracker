@@ -34,4 +34,4 @@ class SearchFrame(tk.Frame):
         return Filter(self.list_input_value.get())
 
     def list_filter_changed(self, *_):
-        self.master.event_generate("<<BookUpdate>>")
+        self.master.event_generate("<<ListFilterUpdate>>")

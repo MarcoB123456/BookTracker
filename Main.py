@@ -1,5 +1,6 @@
 import logging
 from os.path import exists
+from pathlib import Path
 
 from Models.Author import Author
 from Models.Book import Book
@@ -18,7 +19,7 @@ def log_init():
 
 
 def db_init():
-    if not exists("BookTracker.db"):
+    if not Path("BookTracker.db").exists():
         BookAuthor = Book.authors.get_through_model()
 
         db.create_tables([List, Book, Read, Author, BookAuthor])
